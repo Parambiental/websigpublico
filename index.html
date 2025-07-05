@@ -2,17 +2,105 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Parambiental SIG</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <!-- Más estilos para plugins si usás -->
-  <link rel="stylesheet" href="style.css" />
+  <title>Mapa Leaflet Todo en Uno - Ejemplo WMS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+  />
+  <style>
+    body, html, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
-  <div id="map" style="height: 100vh;"></div>
+  <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <!-- Plugins Leaflet, ejemplo: -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-  <script src="script.js"></script>
+  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+
+  <script>
+    // Inicializamos el mapa
+    const map = L.map("map").setView([-25.2637, -57.5759], 13);
+
+    // Capas base
+    const osm = L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom: 19,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }
+    ).addTo(map);
+
+    const stamenToner = L.tileLayer(
+      "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
+      {
+        maxZoom: 20,
+        attribution:
+          'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under CC BY 3.0. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>',
+      }
+    );
+
+    // Capa WMS ejemplo (podés cambiar la URL y capa a la que tengas acceso)
+    const catastroWMS = L.tileLayer.wms(
+      "https://ahocevar.com/geoserver/wms",
+      {
+        layers: "topp:states",
+        format: "image/png",
+        transparent: true,
+        attribution: "Ejemplo WMS",
+      }
+    );
+
+    // Control de capas base y superposición
+    const baseLayers = {
+      "OpenStreetMap": osm,
+      "Stamen Toner": stamenToner,
+    };
+
+    const overlays = {
+      "Catastro WMS (Ejemplo)": catastroWMS,
+    };
+
+    L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
+
+    // Control de geolocalización
+    L.control.locate({ position: "topleft", strings: { title: "Mostrar mi ubicación" } }).addTo(map);
+
+    // Grupo para dibujar
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    // Control de dibujo
+    const drawControl = new L.Control.Draw({
+      edit: {
+        featureGroup: drawnItems,
+      },
+      draw: {
+        polygon: true,
+        polyline: true,
+        rectangle: true,
+        circle: false,
+        marker: true,
+      },
+    });
+    map.addControl(drawControl);
+
+    map.on(L.Draw.Event.CREATED, function (e) {
+      drawnItems.addLayer(e.layer);
+    });
+  </script>
 </body>
 </html>
