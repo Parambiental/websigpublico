@@ -1,11 +1,210 @@
-body, html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: sans-serif;
+/* Reset básico */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Fuente general */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f9f9f9;
+    color: #2c3e50;
+}
+
+/* Encabezado y Tabs */
+header {
+    background: #34495e;
+    color: #fff;
+    padding: 15px 20px;
+    border-bottom: 4px solid #2ecc71;
+}
+
+header h1 {
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+}
+
+.tab-btn {
+    background: none;
+    color: white;
+    border: none;
+    font-size: 16px;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: border-color 0.3s;
+}
+
+.tab-btn.active {
+    border-bottom: 3px solid #2ecc71;
+    font-weight: bold;
+}
+
+/* Contenido principal */
+main {
+    padding: 20px;
+}
+
+/* Secciones de pestañas */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Formulario expediente */
+.formulario-expediente {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.formulario-expediente label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.formulario-expediente input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* Mapa y herramientas */
+.map-container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    padding: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 #map {
-  height: 100vh;
-  width: 100vw;
+    height: 400px;
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* Herramientas de coordenadas */
+.coordenadas-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.coordenadas-tools button, .coordenadas-tools input[type="file"] {
+    padding: 8px 12px;
+    border: none;
+    background: #2980b9;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.coordenadas-tools button:hover {
+    background: #3498db;
+}
+
+/* Tabla de vértices */
+.tabla-vertices {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+#tabla-vertices {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#tabla-vertices th, #tabla-vertices td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+#tabla-vertices th {
+    background: #2c3e50;
+    color: white;
+}
+
+/* Botón eliminar */
+.eliminar-btn {
+    background: #e74c3c;
+    border: none;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.eliminar-btn:hover {
+    background: #c0392b;
+}
+
+/* Vista PDF */
+#pdf-preview {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+#pdf-content {
+    padding: 10px;
+    border: 1px dashed #ccc;
+    min-height: 300px;
+    margin-top: 10px;
+    background: #fefefe;
+}
+
+#generar-pdf {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #27ae60;
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#generar-pdf:hover {
+    background: #2ecc71;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .coordenadas-tools {
+        flex-direction: column;
+    }
+
+    .formulario-expediente input {
+        font-size: 14px;
+    }
+
+    header h1 {
+        font-size: 18px;
+    }
 }
