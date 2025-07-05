@@ -4,252 +4,185 @@
   <meta charset="UTF-8" />
   <title>Visor SIG Avanzado - Leaflet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <!-- Plugins CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton/src/easy-button.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar-v2/css/leaflet-sidebar.min.css" />
-  <!-- FontAwesome para iconos del sidebar -->
+
+  <!-- Plantilla CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+5dCdZy+Mqsc0JxjGShV1FL+bCa49X3fNj5Gm/dPc="
+    crossorigin=""
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
+    crossorigin="anonymous"
+  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton/src/easy-button.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar-v2/css/leaflet-sidebar.min.css" crossorigin="" />
   <link
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     rel="stylesheet"
+    crossorigin="anonymous"
   />
+
   <style>
-    /* Reset y layout base */
     html, body {
       height: 100%;
       margin: 0;
       padding: 0;
       font-family: Arial, sans-serif;
-    }
-
-    body {
       display: flex;
-      height: 100vh;
       overflow: hidden;
     }
-
-    /* Sidebar */
     #sidebar {
-      width: 320px;
+      width: 300px;
       max-width: 100%;
       height: 100%;
+      background: #fff;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
+      transform: translateX(-100%);
+      position: relative;
       z-index: 1000;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.15);
-      background: white;
     }
-
-    /* El sidebar ya tiene clase leaflet-sidebar collapsed para ocultarlo inicialmente */
-    /* Puedes personalizar más su estilo si quieres */
-
-    /* Mapa ocupa todo lo demás */
+    #sidebar.visible {
+      transform: translateX(0);
+    }
+    .leaflet-sidebar-tabs {
+      background: #f2f2f2;
+    }
+    .leaflet-sidebar-content {
+      padding: 15px;
+      overflow-y: auto;
+      height: calc(100% - 45px);
+    }
     #map {
       flex-grow: 1;
       height: 100%;
-      width: calc(100% - 320px);
-      transition: width 0.3s;
+      position: relative;
     }
-
-    /* Cuando el sidebar está colapsado el ancho del mapa es 100% */
-    .leaflet-sidebar.collapsed + #map,
-    .leaflet-sidebar.collapsed {
-      width: 0;
-      display: none;
-    }
-
-    /* Para que mapa ocupe todo si sidebar oculto */
-    .leaflet-sidebar.collapsed ~ #map {
-      width: 100% !important;
-    }
-
-    /* Ajustar la barra lateral para que no cubra controles */
-    .leaflet-sidebar-tabs ul {
-      padding-left: 0;
-    }
-
-    .leaflet-sidebar-tabs li a {
-      font-size: 18px;
-      color: #0078A8;
-    }
-
-    /* Ajustes para contenido de sidebar */
-    .leaflet-sidebar-content {
-      padding: 12px 20px;
-      color: #444;
-    }
-
-    .leaflet-sidebar-header {
-      font-weight: 700;
-      font-size: 1.3rem;
-      margin-bottom: 12px;
-      color: #0078A8;
+    #toggleBtn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1100;
+      background: #0078a8;
+      color: #fff;
+      border: none;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar ejemplo -->
-  <div id="sidebar" class="leaflet-sidebar collapsed">
+  <aside id="sidebar">
     <div class="leaflet-sidebar-tabs">
       <ul role="tablist">
         <li><a href="#home" role="tab" aria-controls="home" aria-selected="true"><i class="fa fa-bars"></i></a></li>
-        <li><a href="#info" role="tab" aria-controls="info" aria-selected="false"><i class="fa fa-info"></i></a></li>
+        <li><a href="#info" role="tab" aria-controls="info"><i class="fa fa-info"></i></a></li>
       </ul>
     </div>
     <div class="leaflet-sidebar-content">
-      <div class="leaflet-sidebar-pane" id="home" role="tabpanel" tabindex="0">
-        <h1 class="leaflet-sidebar-header">Herramientas SIG</h1>
-        <p>Explora las herramientas disponibles en este visor.</p>
+      <div id="home" role="tabpanel">
+        <h2>Herramientas SIG</h2><p>Explora las herramientas disponibles.</p>
       </div>
-      <div class="leaflet-sidebar-pane" id="info" role="tabpanel" tabindex="0" hidden>
-        <h1 class="leaflet-sidebar-header">Información</h1>
-        <p>Este visor utiliza Leaflet y más de 50 herramientas SIG.</p>
+      <div id="info" role="tabpanel" hidden>
+        <h2>Información</h2><p>Visor avanzado con múltiples funciones.</p>
       </div>
     </div>
-  </div>
+  </aside>
 
+  <button id="toggleBtn" aria-controls="sidebar" aria-expanded="false">☰</button>
   <div id="map"></div>
 
-  <!-- Librerías JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
-  <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js"></script>
-  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-  <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js"></script>
-  <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js"></script>
-  <script src="https://unpkg.com/leaflet-sidebar-v2/js/leaflet-sidebar.min.js"></script>
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-sidebar-v2/js/leaflet-sidebar.min.js" crossorigin=""></script>
 
   <script>
-    // Inicialización del mapa con capa base osm
-    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+      const sidebarEl = document.getElementById('sidebar');
+      const toggleBtn = document.getElementById('toggleBtn');
+      toggleBtn.addEventListener('click', () => {
+        const visible = sidebarEl.classList.toggle('visible');
+        toggleBtn.setAttribute('aria-expanded', visible);
+      });
 
-    const stamenToner = L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
-      maxZoom: 20,
-      attribution: 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap'
-    });
-
-    const catastroWMS = L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
-      layers: 'topp:states',
-      format: 'image/png',
-      transparent: true,
-      attribution: 'Ejemplo WMS'
-    });
-
-    const map = L.map('map', {
-      fullscreenControl: true,
-      layers: [osm], // Capa base inicial
-      zoomControl: false // Quitamos zoom por defecto para moverlo manualmente si quieres
-    }).setView([-25.2637, -57.5759], 13);
-
-    // Control zoom abajo derecha para no superponerse con sidebar
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    // Control de capas: 3 capas base y una capa overlay ejemplo
-    const baseLayers = {
-      "OpenStreetMap": osm,
-      "Stamen Toner": stamenToner,
-      "Catastro WMS": catastroWMS
-    };
-
-    // Si quieres que catastroWMS sea overlay, ponlo en overlays en vez de baseLayers
-
-    const overlays = {
-      // Ejemplo de overlay, puedes añadir más capas
-    };
-
-    L.control.layers(baseLayers, overlays, { collapsed: false, position: 'topright' }).addTo(map);
-
-    // Minimapa
-    const miniMap = new L.Control.MiniMap(osm, { toggleDisplay: true, minimized: false }).addTo(map);
-
-    // Control de escala
-    L.control.scale({ position: 'bottomleft' }).addTo(map);
-
-    // Geolocalización
-    L.control.locate({ position: "topleft", strings: { title: "Mostrar mi ubicación" } }).addTo(map);
-
-    // Medición de distancias y áreas
-    L.control.measure({ position: 'topleft' }).addTo(map);
-
-    // Geocodificador (buscador de direcciones)
-    L.Control.geocoder({ position: 'topleft' }).addTo(map);
-
-    // Dibujo y edición
-    const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
-    const drawControl = new L.Control.Draw({
-      edit: { featureGroup: drawnItems },
-      draw: {
-        polygon: true,
-        polyline: true,
-        rectangle: true,
-        circle: true,
-        marker: true,
-      },
-    });
-    map.addControl(drawControl);
-    map.on(L.Draw.Event.CREATED, function (e) {
-      drawnItems.addLayer(e.layer);
-    });
-
-    // Agrupación de marcadores (ejemplo)
-    const markers = L.markerClusterGroup();
-    for (let i = 0; i < 100; i++) {
-      const marker = L.marker([
-        -25.2637 + (Math.random() - 0.5) * 0.1,
-        -57.5759 + (Math.random() - 0.5) * 0.1
-      ]).bindPopup('Marcador ' + (i + 1));
-      markers.addLayer(marker);
-    }
-    map.addLayer(markers);
-
-    // Botón personalizado (ejemplo)
-    L.easyButton('fa-home', function(btn, map){
-      map.setView([-25.2637, -57.5759], 13);
-    }, 'Volver al inicio').addTo(map);
-
-    // Sidebar
-    const sidebar = L.control.sidebar({
-      autopan: true,
-      closeButton: true,
-      container: 'sidebar',
-      position: 'left' // puedes cambiar a 'right' si prefieres
-    }).addTo(map);
-
-    // Manejo accesible de tabs en sidebar (opcional)
-    const tabs = document.querySelectorAll('.leaflet-sidebar-tabs a');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', e => {
-        e.preventDefault();
-        const targetId = tab.getAttribute('href').substring(1);
-        document.querySelectorAll('.leaflet-sidebar-pane').forEach(pane => {
-          pane.hidden = pane.id !== targetId;
+      document.querySelectorAll('.leaflet-sidebar-tabs a').forEach(tab => {
+        tab.addEventListener('click', e => {
+          e.preventDefault();
+          document.querySelectorAll('.leaflet-sidebar-content > div').forEach(div => div.hidden = true);
+          document.getElementById(tab.getAttribute('href').substring(1)).hidden = false;
         });
-        tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
-        tab.setAttribute('aria-selected', 'true');
+      });
+
+      const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '© OpenStreetMap'
+      });
+      const stamen = L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+        maxZoom: 20, attribution: 'Stamen Design'
+      });
+      const wms = L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
+        layers: 'topp:states', format: 'image/png', transparent: true
+      });
+
+      const map = L.map('map', {
+        center: [-25.2637, -57.5759],
+        zoom: 13,
+        fullscreenControl: true,
+        layers: [osm],
+        zoomControl: false
+      });
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      L.control.layers({ Osm: osm, Toner: stamen, WMS: wms }, {}, { position: 'topright', collapsed: false }).addTo(map);
+      L.control.scale({ position: 'bottomleft' }).addTo(map);
+      L.control.locate({ position: 'topleft', strings: { title: "Mi ubicación" } }).addTo(map);
+      L.control.measure({ position: 'topleft' }).addTo(map);
+      L.Control.geocoder({ position: 'topleft' }).addTo(map);
+
+      const drawn = new L.FeatureGroup().addTo(map);
+      L.control.draw({ edit: { featureGroup: drawn } }).addTo(map);
+      map.on(L.Draw.Event.CREATED, e => drawn.addLayer(e.layer));
+
+      const cluster = L.markerClusterGroup();
+      for (let i = 0; i < 50; i++) {
+        cluster.addLayer(L.marker([
+          -25.2637 + (Math.random() - 0.5) * 0.1,
+          -57.5759 + (Math.random() - 0.5) * 0.1
+        ]).bindPopup(`Marker ${i+1}`));
+      }
+      map.addLayer(cluster);
+
+      L.easyButton('fa-home', () => map.setView([-25.2637, -57.5759], 13), 'Reset View').addTo(map);
+
+      const sidebar = L.control.sidebar({
+        container: 'sidebar',
+        closeButton: false,
+        autopan: false
+      }).addTo(map);
+
+      map.on('click', e => {
+        L.popup()
+          .setLatLng(e.latlng)
+          .setContent(`Coordenadas: ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`)
+          .openOn(map);
       });
     });
-
-    // Mostrar coordenadas al hacer click en mapa
-    map.on('click', function(e) {
-      L.popup()
-        .setLatLng(e.latlng)
-        .setContent('Coordenadas: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5))
-        .openOn(map);
-    });
-
   </script>
 </body>
 </html>
