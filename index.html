@@ -20,33 +20,48 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            overflow: hidden;
         }
-        
+
         #map {
             flex: 1;
             width: 100%;
             background: #f0f0f0;
         }
-        
+
         .sidebar {
+            position: fixed;
+            right: 20px;
+            top: 20px;
             padding: 15px;
             background: #fff;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
             overflow-y: auto;
-            max-height: 40vh;
+            max-height: 80vh;
+            width: 300px;
+            z-index: 1000;
+            border-radius: 8px;
+            cursor: move;
+            transition: all 0.3s ease;
         }
-        
+
+        .sidebar-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
         .form-group {
             margin-bottom: 15px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 5px;
             font-weight: 600;
             color: #2c3e50;
         }
-        
+
         input, textarea, select {
             width: 100%;
             padding: 8px;
@@ -54,7 +69,7 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
-        
+
         button {
             background: #27ae60;
             color: white;
@@ -65,38 +80,51 @@
             margin-right: 5px;
             font-weight: 600;
         }
-        
+
         button:hover {
             background: #2ecc71;
         }
-        
-        .status-bueno { background: #2ecc71; color: white; padding: 3px 8px; border-radius: 3px; }
-        .status-regular { background: #f39c12; color: white; padding: 3px 8px; border-radius: 3px; }
-        .status-critico { background: #e74c3c; color: white; padding: 3px 8px; border-radius: 3px; }
-        
+
+        .status-verde { background: #27ae60; color: white; padding: 3px 8px; border-radius: 3px; }
+        .status-amarillo { background: #f39c12; color: white; padding: 3px 8px; border-radius: 3px; }
+        .status-rojo { background: #e74c3c; color: white; padding: 3px 8px; border-radius: 3px; }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
         }
-        
+
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
-        
+
         th {
             background: #2c3e50;
             color: white;
+        }
+
+        /* Responsive para dispositivos móviles */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 100%;
+                height: 100%;
+                max-height: 100vh;
+                z-index: 9999;
+            }
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
     
-    <div class="sidebar">
-        <h2 style="color: #2c3e50;">Formulario Técnico</h2>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">Formulario Técnico</div>
         
         <form id="point-form">
             <div class="form-group">
@@ -107,9 +135,9 @@
             <div class="form-group">
                 <label for="site-status">Estado ambiental</label>
                 <select id="site-status" required>
-                    <option value="Bueno">Bueno</option>
-                    <option value="Regular">Regular</option>
-                    <option value="Crítico">Crítico</option>
+                    <option value="Verde">Verde</option>
+                    <option value="Amarillo">Amarillo</option>
+                    <option value="Rojo">Rojo</option>
                 </select>
             </div>
             
@@ -144,7 +172,7 @@
     <!-- Scripts esenciales -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.js"></script>
-    
+
     <script>
         // =====================
         // Configuración inicial
@@ -156,10 +184,57 @@
         
         const pointsLayer = L.layerGroup().addTo(map);
         let pointsData = [];
-        
-        // =====================
-        // Funcionalidad principal
-        // =====================
+
+        // ==========================
+        // Función de geolocalización
+        // ==========================
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                map.setView([userLat, userLng], 13);
+                L.marker([userLat, userLng]).addTo(map).bindPopup("Tu ubicación actual").openPopup();
+            }, function(error) {
+                alert("No se pudo obtener la ubicación del usuario.");
+            });
+        }
+
+        // Inicializar las herramientas de dibujo
+        const drawControl = new L.Control.Draw({
+            edit: {
+                featureGroup: pointsLayer
+            },
+            draw: {
+                polygon: false,
+                polyline: false,
+                marker: true,
+                circle: false,
+                rectangle: false
+            }
+        });
+        map.addControl(drawControl);
+
+        map.on(L.Draw.Event.CREATED, function (e) {
+            const layer = e.layer;
+            const latlng = layer.getLatLng();
+            
+            const pointData = {
+                id: Date.now(),
+                name: "Nuevo punto",
+                status: "Verde",
+                notes: "",
+                lat: latlng.lat,
+                lng: latlng.lng,
+                photos: []
+            };
+
+            addPointToMap(pointData);
+            updatePointsTable();
+        });
+
+        // ==========================
+        // Funcionalidad del formulario
+        // ==========================
         document.getElementById('point-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -173,7 +248,7 @@
                 lng: center.lng,
                 photos: []
             };
-            
+
             // Procesar fotos
             const photoInput = document.getElementById('site-photo');
             if (photoInput.files.length > 0) {
@@ -188,12 +263,13 @@
                     reader.readAsDataURL(file);
                 });
             }
-            
+
             addPointToMap(pointData);
             updatePointsTable();
             this.reset();
         });
-        
+
+        // Agregar punto al mapa
         function addPointToMap(point) {
             const marker = L.marker([point.lat, point.lng], {
                 icon: L.divIcon({
@@ -202,52 +278,53 @@
                     iconSize: [30, 30]
                 })
             }).addTo(pointsLayer);
-            
+
             marker.bindPopup(`
                 <b>${point.name}</b><br>
                 <b>Estado:</b> <span class="status-${point.status.toLowerCase()}">${point.status}</span><br>
-                <b>Coords:</b> ${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}<br>
+                <b>Coords:</b> ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}<br>
                 <b>Observaciones:</b> ${point.notes || 'N/A'}
             `);
             
             point.marker = marker;
             pointsData.push(point);
         }
-        
+
+        // Actualizar la tabla de puntos
         function updatePointsTable() {
             const tbody = document.querySelector('#points-table tbody');
             tbody.innerHTML = '';
-            
+
             pointsData.forEach(point => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${point.name}</td>
                     <td class="status-${point.status.toLowerCase()}">${point.status}</td>
-                    <td>${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}</td>
+                    <td>${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}</td>
                 `;
                 tbody.appendChild(row);
             });
         }
-        
-        // =====================
-        // Exportación a ZIP
-        // =====================
+
+        // =======================
+        // Exportar a ZIP
+        // =======================
         document.getElementById('export-zip').addEventListener('click', () => {
             if (pointsData.length === 0) {
                 alert('No hay datos para exportar');
                 return;
             }
-            
+
             const zip = new JSZip();
             const dataFolder = zip.folder('relevamiento_ambiental');
-            
+
             // Crear CSV
             let csv = 'Nombre,Estado,Latitud,Longitud,Observaciones\n';
             pointsData.forEach(point => {
                 csv += `"${point.name}","${point.status}",${point.lat},${point.lng},"${point.notes || ''}"\n`;
             });
             dataFolder.file('datos.csv', csv);
-            
+
             // Generar ZIP
             zip.generateAsync({type:'blob'}).then(content => {
                 saveAs(content, 'relevamiento_ambiental.zip');
