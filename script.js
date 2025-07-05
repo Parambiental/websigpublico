@@ -198,4 +198,12 @@ function actualizarVistaPDF() {
 // Generar PDF con html2canvas
 // =============================
 document.getElementById('generar-pdf').addEventListener('click', () => {
-    const pdfContainer = document.getElementBy
+    const pdfContainer = document.getElementById('pdf-content');
+
+    html2canvas(pdfContainer).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF();
+        pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
+        pdf.save('informe_mensura.pdf');
+    });
+});
