@@ -69,3 +69,24 @@ Aplicación web interactiva para estudiantes y técnicos en Ciencias Ambientales
 Desarrollado por ChatGPT + [Tu nombre o institución].
 
 Contribuciones y mejoras son bienvenidas 🛠️
+
+# Parambiental SIG
+
+## Cómo correr la app
+
+1. Instalar dependencias  
+   `npm install`
+
+2. Ejecutar servidor  
+   `npm start`
+
+3. Abrir en navegador `http://localhost:3000`
+
+## Actualizar capas
+
+- Cambiar URLs WMS/WFS en `script.js` para apuntar a servicios actualizados.
+
+## Dependencias
+
+- Leaflet, Leaflet.draw, Express
+
