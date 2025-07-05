@@ -1,17 +1,27 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Diagnóstico Ambiental</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
-  <link rel="stylesheet" href="style.css" />
+    <title>Prueba Vercel</title>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 50px; }
+        .success { color: green; font-size: 2em; }
+    </style>
 </head>
 <body>
-  <div id="map"></div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-  <script src="script.js"></script>
+    <div class="success">✓</div>
+    <h1>¡Conexión Exitosa!</h1>
+    <p>Esta es una prueba mínima de que Vercel sirve archivos HTML.</p>
+    
+    <!-- Test de CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
+    
+    <div id="map" style="height: 200px; margin: 20px auto; width: 80%;"></div>
+    <script>
+        // Prueba de Leaflet
+        const map = L.map('map').setView([-34.6037, -58.3816], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        console.log("Leaflet funcionando correctamente");
+    </script>
 </body>
 </html>
