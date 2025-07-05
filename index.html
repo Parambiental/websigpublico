@@ -1,654 +1,181 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Diagnóstico Ambiental Participativo</title>
+// --- CAPAS BASE ---
+const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution:
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+});
 
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-o9N1jRrNq8f2mGyTSjLU9lM2w0pChQUWJuHAXi9wr5A="
-    crossorigin=""
-  />
-  <!-- Leaflet Draw CSS -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css"
-  />
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
+const opentopo = L.tileLayer(
+  "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom: 17,
+    attribution:
+      'Map data: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>, ' +
+      'SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)',
+  }
+);
+
+const stamenToner = L.tileLayer(
+  "https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png",
+  {
+    maxZoom: 20,
+    attribution:
+      'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ' +
+      'under CC BY 3.0. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>',
+  }
+);
+
+// --- MAPA ---
+const map = L.map("map", {
+  center: [-25.2637, -57.5759],
+  zoom: 13,
+  layers: [osm],
+});
+
+// --- CAPAS BASE CONTROL ---
+const baseLayers = {
+  "OpenStreetMap": osm,
+  "OpenTopoMap": opentopo,
+  "Stamen Toner": stamenToner,
+};
+
+// --- CAPAS GEOJSON (VACÍAS - se cargarán después) ---
+// Ejemplo de capas temáticas GeoJSON libres de Paraguay / Asunción
+const lotesCatastrales = L.geoJSON(null, {
+  style: { color: "#FF0000", weight: 1, fillOpacity: 0.3 },
+  onEachFeature: (feature, layer) => {
+    if (feature.properties && feature.properties.id) {
+      layer.bindPopup(`Lote ID: ${feature.properties.id}`);
     }
-    #map {
-      flex: 1;
-      height: 60vh;
+  },
+});
+
+const zonasUrbanas = L.geoJSON(null, {
+  style: { color: "#0000FF", weight: 2, fillOpacity: 0.2 },
+  onEachFeature: (feature, layer) => {
+    if (feature.properties && feature.properties.nombre) {
+      layer.bindPopup(`Zona Urbana: ${feature.properties.nombre}`);
     }
-    #form-section,
-    #table-section,
-    #actions-section {
-      padding: 10px;
-      background: #f8f8f8;
-      max-height: 40vh;
-      overflow-y: auto;
-      border-top: 1px solid #ccc;
-    }
-    h2 {
-      margin-top: 0;
-    }
-    label {
-      display: block;
-      margin-top: 8px;
-    }
-    input[type="text"],
-    textarea,
-    select {
-      width: 100%;
-      padding: 6px;
-      box-sizing: border-box;
-      margin-top: 2px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 0.9em;
-    }
-    textarea {
-      resize: vertical;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.9em;
-    }
-    th,
-    td {
-      padding: 6px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-    tr.selected {
-      background-color: #d1e7fd;
-    }
-    button {
-      margin-top: 10px;
-      padding: 8px 12px;
-      font-size: 1em;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      opacity: 0.9;
-    }
-    #export-zip {
-      background-color: #28a745;
-      color: white;
-      margin-right: 10px;
-    }
-    #generate-report {
-      background-color: #007bff;
-      color: white;
-    }
-    #delete-point {
-      background-color: #dc3545;
-      color: white;
-      margin-left: 10px;
-    }
-    #photo-preview {
-      margin-top: 8px;
-      max-height: 100px;
-      max-width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      object-fit: contain;
-      display: none;
-    }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
+  },
+});
 
-  <section id="form-section">
-    <h2>Formulario del Punto Seleccionado</h2>
-    <form id="point-form" autocomplete="off">
-      <input type="hidden" id="point-id" />
-      <label for="site-name">Nombre del sitio:</label>
-      <input type="text" id="site-name" required />
+// Añadir capas vacías a un grupo para controlarlas
+const overlays = {
+  "Lotes Catastrales": lotesCatastrales,
+  "Zonas Urbanas": zonasUrbanas,
+};
 
-      <label for="observations">Observaciones:</label>
-      <textarea id="observations" rows="3"></textarea>
+// Control de capas base y superpuestas
+L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
 
-      <label for="status">Estado ambiental:</label>
-      <select id="status" required>
-        <option value="">--Seleccione--</option>
-        <option value="Bueno">Bueno</option>
-        <option value="Regular">Regular</option>
-        <option value="Malo">Malo</option>
-      </select>
+// --- CONTROL DE ESCALA ---
+L.control.scale({ position: "bottomleft", metric: true, imperial: false }).addTo(map);
 
-      <label for="photo">Foto (opcional):</label>
-      <input type="file" id="photo" accept="image/*" />
-      <img id="photo-preview" alt="Vista previa de la foto" />
+// --- CONTROL DE GEOCODIFICACIÓN (con Nominatim) ---
+const geocoder = L.Control.geocoder({
+  defaultMarkGeocode: false,
+}).on("markgeocode", function(e) {
+  const bbox = e.geocode.bbox;
+  const poly = L.polygon([
+    bbox.getSouthEast(),
+    bbox.getNorthEast(),
+    bbox.getNorthWest(),
+    bbox.getSouthWest(),
+  ]).addTo(map);
+  map.fitBounds(poly.getBounds());
+}).addTo(map);
 
-      <div style="margin-top: 10px;">
-        <button type="submit" id="save-point">Guardar</button>
-        <button type="button" id="delete-point">Eliminar</button>
-      </div>
-    </form>
-  </section>
+// --- CONTROL DE GEOLOCALIZACIÓN ---
+L.control
+  .locate({
+    position: "topleft",
+    flyTo: true,
+    strings: {
+      title: "Mostrar mi ubicación",
+    },
+  })
+  .addTo(map);
 
-  <section id="table-section">
-    <h2>Lista de Puntos</h2>
-    <table id="points-table" tabindex="0" aria-label="Tabla de puntos registrados">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Estado</th>
-          <th>Observaciones</th>
-          <th>Tipo</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+// --- CONTROL DE DIBUJO (Leaflet.draw) ---
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
 
-  <section id="actions-section" style="text-align: center;">
-    <button id="export-zip">Exportar datos a ZIP</button>
-    <button id="generate-report">Generar informe automático</button>
-  </section>
+const drawControl = new L.Control.Draw({
+  position: "topright",
+  draw: {
+    polygon: true,
+    polyline: true,
+    rectangle: true,
+    circle: false,
+    marker: true,
+    circlemarker: false,
+  },
+  edit: {
+    featureGroup: drawnItems,
+  },
+});
+map.addControl(drawControl);
 
-  <!-- Dependencias -->
-  <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-oRmhNJK6pyM9vMbQWOD7k2Q1ihG42Kc25lj3DmXt4Vk="
-    crossorigin=""
-  ></script>
-  <!-- Leaflet Draw -->
-  <script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-  <!-- JSZip -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+map.on(L.Draw.Event.CREATED, function (event) {
+  const layer = event.layer;
+  drawnItems.addLayer(layer);
+});
 
-  <script>
-    (() => {
-      // Mapa e inicialización
-      const map = L.map("map").setView([-25.2637, -57.5759], 13); // Asunción, Paraguay
+// --- CONTROL DE MEDICIÓN (distancia y área) ---
+const measureControl = new L.Control.Measure({
+  position: "topleft",
+  primaryLengthUnit: "meters",
+  primaryAreaUnit: "sqmeters",
+  activeColor: "#db4a29",
+  completedColor: "#9b2d14",
+});
+measureControl.addTo(map);
 
-      // Fondo OpenStreetMap
-      const osm = L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }
-      ).addTo(map);
+// --- CONTROL DE LEYENDA SIMPLE ---
+const legend = L.control({ position: "bottomright" });
 
-      // Grupo de capas editable para puntos y formas
-      const drawnItems = new L.FeatureGroup();
-      map.addLayer(drawnItems);
+legend.onAdd = function (map) {
+  const div = L.DomUtil.create("div", "info legend");
+  div.innerHTML = `
+    <h4>Leyenda</h4>
+    <i style="background: #FF0000; opacity:0.5"></i> Lotes Catastrales<br>
+    <i style="background: #0000FF; opacity:0.3"></i> Zonas Urbanas<br>
+  `;
+  return div;
+};
+legend.addTo(map);
 
-      // Control de dibujo
-      const drawControl = new L.Control.Draw({
-        edit: {
-          featureGroup: drawnItems,
-          poly: {
-            allowIntersection: false,
-          },
-        },
-        draw: {
-          polygon: {
-            allowIntersection: false,
-            showArea: true,
-            shapeOptions: {
-              color: "#ff7800",
-              weight: 3,
-            },
-          },
-          polyline: {
-            shapeOptions: {
-              color: "#007bff",
-              weight: 3,
-            },
-          },
-          rectangle: false,
-          circle: false,
-          marker: true,
-          circlemarker: false,
-        },
-      });
-      map.addControl(drawControl);
+// --- CARGA DE CAPAS GEOJSON DINÁMICAMENTE ---
 
-      // Estado app: puntos y dibujos
-      let pointsData = []; // Array de objetos con info de puntos y dibujos
-      let selectedId = null; // id del punto seleccionado
-      let photoDataURL = null; // Imagen cargada en base64
+// Función para cargar GeoJSON desde URL (ejemplo)
+function cargarGeoJSON(url, capa) {
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      capa.clearLayers();
+      capa.addData(data);
+    })
+    .catch((err) => console.error("Error cargando GeoJSON: ", err));
+}
 
-      // Referencias DOM
-      const form = document.getElementById("point-form");
-      const inputName = document.getElementById("site-name");
-      const inputObs = document.getElementById("observations");
-      const inputStatus = document.getElementById("status");
-      const inputPhoto = document.getElementById("photo");
-      const photoPreview = document.getElementById("photo-preview");
-      const inputId = document.getElementById("point-id");
-      const deleteBtn = document.getElementById("delete-point");
-      const tableBody = document.querySelector("#points-table tbody");
-      const exportZipBtn = document.getElementById("export-zip");
-      const generateReportBtn = document.getElementById("generate-report");
+// Ejemplo: cargar lotes catastrales desde archivo local o URL
+cargarGeoJSON("data/lotes_catastrales.geojson", lotesCatastrales);
+cargarGeoJSON("data/zonas_urbanas.geojson", zonasUrbanas);
 
-      // Generar ID único simple
-      const generateId = () =>
-        "id-" + Math.random().toString(36).substr(2, 9);
+// --- MÁS HERRAMIENTAS (Ejemplos) ---
+// 1. Snap para dibujo (para ajustar vértices)
+// 2. Exportar a GeoJSON (de drawnItems o capas)
+// 3. Herramienta de búsqueda avanzada
+// 4. Herramientas de análisis espacial (buffers, intersecciones)
 
-      // Agregar punto manual con clic en mapa
-      map.on("click", (e) => {
-        // Crear marcador provisional
-        const marker = L.marker(e.latlng, { draggable: true });
-        const id = generateId();
+// Para esas funcionalidades puedo ayudarte a integrarlas según tus necesidades.
 
-        marker._id = id;
-        drawnItems.addLayer(marker);
+// --- SUGERENCIA PARA CAPAS CATASTRALES DE ASUNCIÓN ---
+// Verificar si Catastro de Asunción tiene WFS/WMS público:
+// Ejemplo WMS (si disponible):
+// const wmsCatastro = L.tileLayer.wms('https://.../wms', {layers: 'catastro', format: 'image/png', transparent: true});
+// overlays["Catastro Asunción (WMS)"] = wmsCatastro;
+// map.addLayer(wmsCatastro);
 
-        // Agregar al array con datos mínimos, sin info aún
-        pointsData.push({
-          id,
-          layerType: "marker",
-          layer: marker,
-          latlng: e.latlng,
-          name: "",
-          observations: "",
-          status: "",
-          photo: null,
-        });
-
-        selectPoint(id);
-
-        // Actualizar al mover marcador
-        marker.on("move", (ev) => {
-          const point = pointsData.find((p) => p.id === id);
-          if (point) {
-            point.latlng = ev.latlng;
-          }
-        });
-      });
-
-      // Cuando se crea una forma con Draw
-      map.on(L.Draw.Event.CREATED, function (event) {
-        const layer = event.layer;
-        const type = event.layerType;
-        const id = generateId();
-
-        // Guardar info según tipo
-        const pointObj = {
-          id,
-          layerType: type,
-          layer,
-          latlng: null,
-          name: "",
-          observations: "",
-          status: "",
-          photo: null,
-        };
-
-        if (type === "marker") {
-          pointObj.latlng = layer.getLatLng();
-          // Evento drag para actualizar coords
-          layer.on("move", (ev) => {
-            const p = pointsData.find((p) => p.id === id);
-            if (p) p.latlng = ev.latlng;
-          });
-        } else if (type === "polyline" || type === "polygon") {
-          // Para polígono, calcular centroide al crearse
-          if (type === "polygon") {
-            pointObj.latlng = getPolygonCentroid(layer.getLatLngs()[0]);
-          } else {
-            // Para líneas, usar último punto
-            const latlngs = layer.getLatLngs();
-            pointObj.latlng = latlngs[latlngs.length - 1];
-          }
-        }
-
-        layer._id = id;
-        drawnItems.addLayer(layer);
-        pointsData.push(pointObj);
-
-        selectPoint(id);
-      });
-
-      // Calcular centroide polígono simple (array de LatLng)
-      function getPolygonCentroid(latlngs) {
-        let area = 0,
-          x = 0,
-          y = 0,
-          j = latlngs.length - 1;
-        for (let i = 0; i < latlngs.length; i++) {
-          const xi = latlngs[i].lng,
-            yi = latlngs[i].lat;
-          const xj = latlngs[j].lng,
-            yj = latlngs[j].lat;
-          const f = xi * yj - xj * yi;
-          area += f;
-          x += (xi + xj) * f;
-          y += (yi + yj) * f;
-          j = i;
-        }
-        area /= 2;
-        x /= 6 * area;
-        y /= 6 * area;
-        return L.latLng(y, x);
-      }
-
-      // Seleccionar un punto o forma por id
-      function selectPoint(id) {
-        selectedId = id;
-        // Actualizar formulario con datos
-        const point = pointsData.find((p) => p.id === id);
-        if (!point) return;
-
-        inputId.value = point.id || "";
-        inputName.value = point.name || "";
-        inputObs.value = point.observations || "";
-        inputStatus.value = point.status || "";
-        photoDataURL = point.photo || null;
-
-        if (photoDataURL) {
-          photoPreview.src = photoDataURL;
-          photoPreview.style.display = "block";
-        } else {
-          photoPreview.style.display = "none";
-          photoPreview.src = "";
-        }
-
-        // Resaltar fila en tabla
-        highlightTableRow(id);
-
-        // Centrar mapa en el punto/centroide
-        if (point.latlng) {
-          map.panTo(point.latlng);
-        }
-      }
-
-      // Resaltar fila en tabla
-      function highlightTableRow(id) {
-        [...tableBody.children].forEach((row) => {
-          row.classList.toggle("selected", row.dataset.id === id);
-        });
-      }
-
-      // Renderizar tabla completa
-      function renderTable() {
-        tableBody.innerHTML = "";
-        pointsData.forEach((point) => {
-          const tr = document.createElement("tr");
-          tr.tabIndex = 0;
-          tr.dataset.id = point.id;
-          tr.title = "Click para seleccionar este punto";
-
-          const nameTd = document.createElement("td");
-          nameTd.textContent = point.name || "(sin nombre)";
-          const statusTd = document.createElement("td");
-          statusTd.textContent = point.status || "";
-          const obsTd = document.createElement("td");
-          obsTd.textContent = point.observations || "";
-          const typeTd = document.createElement("td");
-          typeTd.textContent = point.layerType;
-
-          tr.appendChild(nameTd);
-          tr.appendChild(statusTd);
-          tr.appendChild(obsTd);
-          tr.appendChild(typeTd);
-
-          tr.addEventListener("click", () => selectPoint(point.id));
-          tr.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              selectPoint(point.id);
-            }
-          });
-
-          tableBody.appendChild(tr);
-        });
-        highlightTableRow(selectedId);
-      }
-
-      // Guardar formulario en punto seleccionado
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        if (!selectedId) {
-          alert("Seleccione un punto para guardar.");
-          return;
-        }
-        const point = pointsData.find((p) => p.id === selectedId);
-        if (!point) return;
-
-        // Validar nombre y estado
-        if (!inputName.value.trim() || !inputStatus.value) {
-          alert("Complete los campos obligatorios (nombre y estado).");
-          return;
-        }
-
-        point.name = inputName.value.trim();
-        point.observations = inputObs.value.trim();
-        point.status = inputStatus.value;
-        point.photo = photoDataURL;
-
-        renderTable();
-        alert("Datos guardados.");
-      });
-
-      // Manejar carga y vista previa de foto
-      inputPhoto.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) {
-          photoDataURL = null;
-          photoPreview.style.display = "none";
-          photoPreview.src = "";
-          return;
-        }
-        if (!file.type.startsWith("image/")) {
-          alert("Por favor seleccione un archivo de imagen.");
-          inputPhoto.value = "";
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = function (evt) {
-          photoDataURL = evt.target.result;
-          photoPreview.src = photoDataURL;
-          photoPreview.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-      });
-
-      // Eliminar punto seleccionado
-      deleteBtn.addEventListener("click", () => {
-        if (!selectedId) {
-          alert("Seleccione un punto para eliminar.");
-          return;
-        }
-        if (
-          confirm(
-            "¿Está seguro que desea eliminar el punto seleccionado? Esta acción no se puede deshacer."
-          )
-        ) {
-          // Remover del array
-          const index = pointsData.findIndex((p) => p.id === selectedId);
-          if (index > -1) {
-            // Remover capa de mapa
-            drawnItems.removeLayer(pointsData[index].layer);
-            pointsData.splice(index, 1);
-            selectedId = null;
-            clearForm();
-            renderTable();
-          }
-        }
-      });
-
-      // Limpiar formulario
-      function clearForm() {
-        inputId.value = "";
-        inputName.value = "";
-        inputObs.value = "";
-        inputStatus.value = "";
-        inputPhoto.value = "";
-        photoPreview.style.display = "none";
-        photoPreview.src = "";
-        photoDataURL = null;
-      }
-
-      // Resaltar punto al hacer clic en tabla (ya implementado arriba con selectPoint)
-
-      // Exportar datos a ZIP
-      exportZipBtn.addEventListener("click", async () => {
-        if (pointsData.length === 0) {
-          alert("No hay datos para exportar.");
-          return;
-        }
-        const zip = new JSZip();
-        const dataJSON = pointsData.map((p) => {
-          const basic = {
-            id: p.id,
-            layerType: p.layerType,
-            latlng: p.latlng
-              ? { lat: p.latlng.lat, lng: p.latlng.lng }
-              : null,
-            name: p.name,
-            observations: p.observations,
-            status: p.status,
-            photoFileName: p.photo ? `${p.id}_photo.txt` : null,
-          };
-          return basic;
-        });
-
-        // Agregar JSON de datos
-        zip.file("puntos_diagnostico.json", JSON.stringify(dataJSON, null, 2));
-
-        // Agregar fotos en archivos txt base64 para evitar problemas
-        pointsData.forEach((p) => {
-          if (p.photo) {
-            // Es base64 data URL, guardamos como txt para abrir con visualizador o base64 decoder
-            zip.file(`${p.id}_photo.txt`, p.photo);
-          }
-        });
-
-        const content = await zip.generateAsync({ type: "blob" });
-        saveAs(content, "diagnostico_ambiental.zip");
-      });
-
-      // Generar informe automático básico en HTML + ventana nueva para imprimir
-      generateReportBtn.addEventListener("click", () => {
-        if (pointsData.length === 0) {
-          alert("No hay datos para generar informe.");
-          return;
-        }
-        let html = `
-          <html>
-          <head>
-            <title>Informe Diagnóstico Ambiental</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 20px; }
-              h1 { text-align: center; }
-              .point {
-                border: 1px solid #ccc;
-                margin-bottom: 15px;
-                padding: 10px;
-                border-radius: 6px;
-              }
-              .point h2 {
-                margin-top: 0;
-              }
-              img {
-                max-width: 300px;
-                max-height: 200px;
-                display: block;
-                margin-top: 10px;
-                border: 1px solid #999;
-                border-radius: 4px;
-              }
-            </style>
-          </head>
-          <body>
-            <h1>Informe Diagnóstico Ambiental Participativo</h1>
-            <p>Generado el: ${new Date().toLocaleString()}</p>
-        `;
-
-        pointsData.forEach((p, i) => {
-          html += `<div class="point">`;
-          html += `<h2>${p.name || "(sin nombre)"}</h2>`;
-          html += `<p><strong>Tipo:</strong> ${p.layerType}</p>`;
-          if (p.latlng)
-            html += `<p><strong>Coordenadas:</strong> ${p.latlng.lat.toFixed(
-              6
-            )}, ${p.latlng.lng.toFixed(6)}</p>`;
-          html += `<p><strong>Estado ambiental:</strong> ${p.status || "N/A"}</p>`;
-          html += `<p><strong>Observaciones:</strong><br/>${p.observations ||
-            "Ninguna"}</p>`;
-          if (p.photo) {
-            html += `<img src="${p.photo}" alt="Foto de ${p.name ||
-              "punto"}" />`;
-          }
-          html += `</div>`;
-        });
-
-        html += `
-          </body>
-          </html>
-        `;
-
-        const reportWindow = window.open("", "_blank", "width=900,height=700");
-        reportWindow.document.write(html);
-        reportWindow.document.close();
-      });
-
-      // Al iniciar, limpiar formulario y tabla
-      clearForm();
-      renderTable();
-
-      // Al seleccionar capa en mapa, seleccionar punto también
-      drawnItems.on("click", (e) => {
-        if (e.layer._id) {
-          selectPoint(e.layer._id);
-        }
-      });
-
-      // Al editar capas vía Draw edit toolbar, actualizar coordenadas
-      map.on(L.Draw.Event.EDITED, (e) => {
-        const layers = e.layers;
-        layers.eachLayer((layer) => {
-          const id = layer._id;
-          const point = pointsData.find((p) => p.id === id);
-          if (point) {
-            if (point.layerType === "marker") {
-              point.latlng = layer.getLatLng();
-            } else if (
-              point.layerType === "polyline" ||
-              point.layerType === "polygon"
-            ) {
-              if (point.layerType === "polygon") {
-                point.latlng = getPolygonCentroid(layer.getLatLngs()[0]);
-              } else {
-                const latlngs = layer.getLatLngs();
-                point.latlng = latlngs[latlngs.length - 1];
-              }
-            }
-          }
-        });
-      });
-
-      // Evitar enviar formulario con Enter accidentalmente
-      form.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
-          e.preventDefault();
-          document.getElementById("save-point").click();
-        }
-      });
-    })();
-  </script>
-</body>
-</html>
+// --- Finalmente agregar las nuevas capas al control de capas ---
+L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
