@@ -31,4 +31,228 @@
         .sidebar {
             padding: 15px;
             background: #fff;
-            box-shadow: 0 -2px 10px rgba(0,0,0,
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            max-height: 40vh;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background: #2ecc71;
+        }
+        
+        .status-bueno { background: #2ecc71; color: white; padding: 3px 8px; border-radius: 3px; }
+        .status-regular { background: #f39c12; color: white; padding: 3px 8px; border-radius: 3px; }
+        .status-critico { background: #e74c3c; color: white; padding: 3px 8px; border-radius: 3px; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background: #2c3e50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <div class="sidebar">
+        <h2 style="color: #2c3e50;">Formulario Técnico</h2>
+        
+        <form id="point-form">
+            <div class="form-group">
+                <label for="site-name">Nombre del sitio</label>
+                <input type="text" id="site-name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="site-status">Estado ambiental</label>
+                <select id="site-status" required>
+                    <option value="Bueno">Bueno</option>
+                    <option value="Regular">Regular</option>
+                    <option value="Crítico">Crítico</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="site-notes">Observaciones técnicas</label>
+                <textarea id="site-notes" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="site-photo">Fotografías (opcional)</label>
+                <input type="file" id="site-photo" accept="image/*" multiple>
+                <div id="photo-previews" style="margin-top: 10px;"></div>
+            </div>
+            
+            <button type="submit" id="save-btn">Guardar Punto</button>
+            <button type="button" id="export-zip" style="background: #3498db;">Exportar a ZIP</button>
+        </form>
+        
+        <h3 style="margin-top: 20px;">Puntos Registrados</h3>
+        <table id="points-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                    <th>Coordenadas</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- Scripts esenciales -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.js"></script>
+    
+    <script>
+        // =====================
+        // Configuración inicial
+        // =====================
+        const map = L.map('map').setView([-34.6037, -58.3816], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+        
+        const pointsLayer = L.layerGroup().addTo(map);
+        let pointsData = [];
+        
+        // =====================
+        // Funcionalidad principal
+        // =====================
+        document.getElementById('point-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const center = map.getCenter();
+            const pointData = {
+                id: Date.now(),
+                name: document.getElementById('site-name').value,
+                status: document.getElementById('site-status').value,
+                notes: document.getElementById('site-notes').value,
+                lat: center.lat,
+                lng: center.lng,
+                photos: []
+            };
+            
+            // Procesar fotos
+            const photoInput = document.getElementById('site-photo');
+            if (photoInput.files.length > 0) {
+                Array.from(photoInput.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        pointData.photos.push({
+                            name: file.name,
+                            data: e.target.result.split(',')[1]
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            addPointToMap(pointData);
+            updatePointsTable();
+            this.reset();
+        });
+        
+        function addPointToMap(point) {
+            const marker = L.marker([point.lat, point.lng], {
+                icon: L.divIcon({
+                    className: `status-${point.status.toLowerCase()}`,
+                    html: '📍',
+                    iconSize: [30, 30]
+                })
+            }).addTo(pointsLayer);
+            
+            marker.bindPopup(`
+                <b>${point.name}</b><br>
+                <b>Estado:</b> <span class="status-${point.status.toLowerCase()}">${point.status}</span><br>
+                <b>Coords:</b> ${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}<br>
+                <b>Observaciones:</b> ${point.notes || 'N/A'}
+            `);
+            
+            point.marker = marker;
+            pointsData.push(point);
+        }
+        
+        function updatePointsTable() {
+            const tbody = document.querySelector('#points-table tbody');
+            tbody.innerHTML = '';
+            
+            pointsData.forEach(point => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${point.name}</td>
+                    <td class="status-${point.status.toLowerCase()}">${point.status}</td>
+                    <td>${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // =====================
+        // Exportación a ZIP
+        // =====================
+        document.getElementById('export-zip').addEventListener('click', () => {
+            if (pointsData.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+            
+            const zip = new JSZip();
+            const dataFolder = zip.folder('relevamiento_ambiental');
+            
+            // Crear CSV
+            let csv = 'Nombre,Estado,Latitud,Longitud,Observaciones\n';
+            pointsData.forEach(point => {
+                csv += `"${point.name}","${point.status}",${point.lat},${point.lng},"${point.notes || ''}"\n`;
+            });
+            dataFolder.file('datos.csv', csv);
+            
+            // Generar ZIP
+            zip.generateAsync({type:'blob'}).then(content => {
+                saveAs(content, 'relevamiento_ambiental.zip');
+            });
+        });
+    </script>
+</body>
+</html>
