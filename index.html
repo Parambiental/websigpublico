@@ -15,39 +15,107 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton/src/easy-button.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar-v2/css/leaflet-sidebar.min.css" />
+  <!-- FontAwesome para iconos del sidebar -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    rel="stylesheet"
+  />
   <style>
-    html, body, #map {
+    /* Reset y layout base */
+    html, body {
       height: 100%;
       margin: 0;
       padding: 0;
+      font-family: Arial, sans-serif;
     }
-    #map {
-      width: 100vw;
+
+    body {
+      display: flex;
       height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      width: 320px;
+      max-width: 100%;
+      height: 100%;
+      z-index: 1000;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+      background: white;
+    }
+
+    /* El sidebar ya tiene clase leaflet-sidebar collapsed para ocultarlo inicialmente */
+    /* Puedes personalizar más su estilo si quieres */
+
+    /* Mapa ocupa todo lo demás */
+    #map {
+      flex-grow: 1;
+      height: 100%;
+      width: calc(100% - 320px);
+      transition: width 0.3s;
+    }
+
+    /* Cuando el sidebar está colapsado el ancho del mapa es 100% */
+    .leaflet-sidebar.collapsed + #map,
+    .leaflet-sidebar.collapsed {
+      width: 0;
+      display: none;
+    }
+
+    /* Para que mapa ocupe todo si sidebar oculto */
+    .leaflet-sidebar.collapsed ~ #map {
+      width: 100% !important;
+    }
+
+    /* Ajustar la barra lateral para que no cubra controles */
+    .leaflet-sidebar-tabs ul {
+      padding-left: 0;
+    }
+
+    .leaflet-sidebar-tabs li a {
+      font-size: 18px;
+      color: #0078A8;
+    }
+
+    /* Ajustes para contenido de sidebar */
+    .leaflet-sidebar-content {
+      padding: 12px 20px;
+      color: #444;
+    }
+
+    .leaflet-sidebar-header {
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      color: #0078A8;
     }
   </style>
 </head>
 <body>
-  <div id="map"></div>
+
   <!-- Sidebar ejemplo -->
   <div id="sidebar" class="leaflet-sidebar collapsed">
     <div class="leaflet-sidebar-tabs">
       <ul role="tablist">
-        <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
-        <li><a href="#info" role="tab"><i class="fa fa-info"></i></a></li>
+        <li><a href="#home" role="tab" aria-controls="home" aria-selected="true"><i class="fa fa-bars"></i></a></li>
+        <li><a href="#info" role="tab" aria-controls="info" aria-selected="false"><i class="fa fa-info"></i></a></li>
       </ul>
     </div>
     <div class="leaflet-sidebar-content">
-      <div class="leaflet-sidebar-pane" id="home">
+      <div class="leaflet-sidebar-pane" id="home" role="tabpanel" tabindex="0">
         <h1 class="leaflet-sidebar-header">Herramientas SIG</h1>
         <p>Explora las herramientas disponibles en este visor.</p>
       </div>
-      <div class="leaflet-sidebar-pane" id="info">
+      <div class="leaflet-sidebar-pane" id="info" role="tabpanel" tabindex="0" hidden>
         <h1 class="leaflet-sidebar-header">Información</h1>
         <p>Este visor utiliza Leaflet y más de 50 herramientas SIG.</p>
       </div>
     </div>
   </div>
+
+  <div id="map"></div>
+
   <!-- Librerías JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
@@ -59,26 +127,19 @@
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js"></script>
   <script src="https://unpkg.com/leaflet-sidebar-v2/js/leaflet-sidebar.min.js"></script>
-  <!-- FontAwesome para iconos del sidebar -->
-  <script src="https://kit.fontawesome.com/1d2a7f6e5c.js" crossorigin="anonymous"></script>
-  <script>
-    // Inicialización del mapa
-    const map = L.map('map', {
-      fullscreenControl: true
-    }).setView([-25.2637, -57.5759], 13);
 
-    // Capas base
+  <script>
+    // Inicialización del mapa con capa base osm
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    });
 
     const stamenToner = L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
       maxZoom: 20,
       attribution: 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap'
     });
 
-    // Capa WMS de ejemplo
     const catastroWMS = L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
       layers: 'topp:states',
       format: 'image/png',
@@ -86,21 +147,35 @@
       attribution: 'Ejemplo WMS'
     });
 
-    // Control de capas
+    const map = L.map('map', {
+      fullscreenControl: true,
+      layers: [osm], // Capa base inicial
+      zoomControl: false // Quitamos zoom por defecto para moverlo manualmente si quieres
+    }).setView([-25.2637, -57.5759], 13);
+
+    // Control zoom abajo derecha para no superponerse con sidebar
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Control de capas: 3 capas base y una capa overlay ejemplo
     const baseLayers = {
       "OpenStreetMap": osm,
       "Stamen Toner": stamenToner,
+      "Catastro WMS": catastroWMS
     };
+
+    // Si quieres que catastroWMS sea overlay, ponlo en overlays en vez de baseLayers
+
     const overlays = {
-      "Catastro WMS": catastroWMS,
+      // Ejemplo de overlay, puedes añadir más capas
     };
-    L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
+
+    L.control.layers(baseLayers, overlays, { collapsed: false, position: 'topright' }).addTo(map);
 
     // Minimapa
-    const miniMap = new L.Control.MiniMap(osm, { toggleDisplay: true }).addTo(map);
+    const miniMap = new L.Control.MiniMap(osm, { toggleDisplay: true, minimized: false }).addTo(map);
 
     // Control de escala
-    L.control.scale().addTo(map);
+    L.control.scale({ position: 'bottomleft' }).addTo(map);
 
     // Geolocalización
     L.control.locate({ position: "topleft", strings: { title: "Mostrar mi ubicación" } }).addTo(map);
@@ -109,7 +184,7 @@
     L.control.measure({ position: 'topleft' }).addTo(map);
 
     // Geocodificador (buscador de direcciones)
-    L.Control.geocoder().addTo(map);
+    L.Control.geocoder({ position: 'topleft' }).addTo(map);
 
     // Dibujo y edición
     const drawnItems = new L.FeatureGroup();
@@ -150,22 +225,31 @@
       autopan: true,
       closeButton: true,
       container: 'sidebar',
-      position: 'right'
+      position: 'left' // puedes cambiar a 'right' si prefieres
     }).addTo(map);
 
-    // Pantalla completa (ya integrado en la inicialización)
+    // Manejo accesible de tabs en sidebar (opcional)
+    const tabs = document.querySelectorAll('.leaflet-sidebar-tabs a');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', e => {
+        e.preventDefault();
+        const targetId = tab.getAttribute('href').substring(1);
+        document.querySelectorAll('.leaflet-sidebar-pane').forEach(pane => {
+          pane.hidden = pane.id !== targetId;
+        });
+        tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+        tab.setAttribute('aria-selected', 'true');
+      });
+    });
 
-    // Agrega aquí más plugins y herramientas según la lista sugerida.
-    // Ejemplo: Leaflet.heat, leaflet-timedimension, leaflet-routing-machine, etc.
-    // Consulta https://leafletjs.com/plugins.html para más opciones.
-
-    // Ejemplo: Mostrar coordenadas al hacer clic
+    // Mostrar coordenadas al hacer click en mapa
     map.on('click', function(e) {
       L.popup()
         .setLatLng(e.latlng)
         .setContent('Coordenadas: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5))
         .openOn(map);
     });
+
   </script>
 </body>
 </html>
