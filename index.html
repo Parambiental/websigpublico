@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parambiental - Herramienta de Mensura</title>
 
-  <!-- Leaflet + Leaflet.draw -->
+  <!-- Leaflet + Leaflet.draw CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-odtCw37VjLfsCkA+3kF34OgLZnP+0aE9v5tTwkG6Lk8=" crossorigin=""/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
 
-  <!-- Estilos personalizados -->
+  <!-- Estilo personalizado -->
   <link rel="stylesheet" href="style.css"/>
 </head>
+
 <body>
+
+  <!-- 🧭 Encabezado y Navegación -->
   <header>
     <h1>📐 Parambiental - Mensura Judicial</h1>
     <nav class="tabs">
@@ -22,19 +25,40 @@
   </header>
 
   <main>
-    <!-- Pestaña 1 -->
+
+    <!-- 📌 Pestaña 1: Herramienta de Mensura -->
     <section id="mensura" class="tab-content active">
+
+      <!-- 🔹 Formulario de Datos del Expediente -->
       <div class="formulario-expediente">
         <h2>Datos del Expediente</h2>
-        <label>Expediente N° <input type="text" id="expediente" /></label>
-        <label>Propietario <input type="text" id="propietario" /></label>
-        <label>Profesional <input type="text" id="profesional" /></label>
-        <label>Juzgado / Distrito <input type="text" id="juzgado" /></label>
-        <label>Ubicación <input type="text" id="ubicacion" /></label>
+
+        <label>Expediente N° 
+          <input type="text" id="expediente" placeholder="Ej: 1234/2025" />
+        </label>
+
+        <label>Propietario 
+          <input type="text" id="propietario" placeholder="Nombre completo" />
+        </label>
+
+        <label>Profesional 
+          <input type="text" id="profesional" placeholder="Nombre y matrícula" />
+        </label>
+
+        <label>Juzgado / Distrito 
+          <input type="text" id="juzgado" placeholder="Ej: Civil 1° Turno - Central" />
+        </label>
+
+        <label>Ubicación 
+          <input type="text" id="ubicacion" placeholder="Departamento / Distrito" />
+        </label>
       </div>
 
+      <!-- 🗺️ Contenedor del Mapa y Herramientas -->
       <div class="map-container">
         <div id="map"></div>
+
+        <!-- ⚙️ Herramientas de dibujo y carga -->
         <div class="coordenadas-tools">
           <button id="draw-btn">Dibujar polígono</button>
           <input type="file" id="cargar-archivo" accept=".csv,.json" />
@@ -43,6 +67,7 @@
         </div>
       </div>
 
+      <!-- 📋 Tabla de Vértices -->
       <div class="tabla-vertices">
         <h3>Tabla de Vértices</h3>
         <table id="tabla-vertices">
@@ -61,25 +86,31 @@
       </div>
     </section>
 
-    <!-- Pestaña 2 -->
+    <!-- 📄 Pestaña 2: Vista Preliminar del Informe -->
     <section id="vista-pdf" class="tab-content">
       <div id="pdf-preview">
         <h2>Vista Preliminar del Informe Legal</h2>
+
+        <!-- 🧾 Aquí se genera la vista previa -->
         <div id="pdf-content">
-          <!-- Contenido generado automáticamente -->
+          <!-- El contenido se rellena dinámicamente desde JS -->
         </div>
+
+        <!-- 🖨️ Botón para exportar el informe -->
         <button id="generar-pdf">🖨️ Exportar PDF</button>
       </div>
     </section>
   </main>
 
-  <!-- JS externos -->
+  <!-- JS: Leaflet y complementos -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1jGmrzF5ZF2eO66xzDkM/vX2P79qvJiyZzXQNDfM=" crossorigin=""></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+  <!-- JS: PDF y capturas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-  <!-- Script personalizado -->
+  <!-- JS: Lógica personalizada -->
   <script src="script.js"></script>
 </body>
 </html>
