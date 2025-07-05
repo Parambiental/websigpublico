@@ -1,89 +1,85 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parambiental - Herramienta de Mensura</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parambiental - Herramienta de Mensura</title>
 
-    <!-- Estilos principales -->
-    <link rel="stylesheet" href="style.css">
+  <!-- Leaflet + Leaflet.draw -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-odtCw37VjLfsCkA+3kF34OgLZnP+0aE9v5tTwkG6Lk8=" crossorigin=""/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
 
-    <!-- Leaflet + Leaflet.draw -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
-
-    <!-- Librerías JS externas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+  <header>
+    <h1>📐 Parambiental - Mensura Judicial</h1>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="mensura">🛠 Herramienta</button>
+      <button class="tab-btn" data-tab="vista-pdf">📄 Vista PDF</button>
+    </nav>
+  </header>
 
-    <header>
-        <h1>📐 Parambiental - Mensura Judicial</h1>
-        <nav class="tabs">
-            <button class="tab-btn active" data-tab="mensura">🛠 Herramienta</button>
-            <button class="tab-btn" data-tab="vista-pdf">📄 Vista PDF</button>
-        </nav>
-    </header>
+  <main>
+    <!-- Pestaña 1 -->
+    <section id="mensura" class="tab-content active">
+      <div class="formulario-expediente">
+        <h2>Datos del Expediente</h2>
+        <label>Expediente N° <input type="text" id="expediente" /></label>
+        <label>Propietario <input type="text" id="propietario" /></label>
+        <label>Profesional <input type="text" id="profesional" /></label>
+        <label>Juzgado / Distrito <input type="text" id="juzgado" /></label>
+        <label>Ubicación <input type="text" id="ubicacion" /></label>
+      </div>
 
-    <main>
-        <!-- Pestaña 1: Herramienta -->
-        <section id="mensura" class="tab-content active">
-            <div class="formulario-expediente">
-                <h2>Datos del Expediente</h2>
-                <label>Expediente N° <input type="text" id="expediente"></label>
-                <label>Propietario <input type="text" id="propietario"></label>
-                <label>Profesional <input type="text" id="profesional"></label>
-                <label>Juzgado / Distrito <input type="text" id="juzgado"></label>
-                <label>Ubicación <input type="text" id="ubicacion"></label>
-            </div>
+      <div class="map-container">
+        <div id="map"></div>
+        <div class="coordenadas-tools">
+          <button id="draw-btn">Dibujar polígono</button>
+          <input type="file" id="cargar-archivo" accept=".csv,.json" />
+          <button id="usar-gps">Usar GPS</button>
+          <button id="validar-poligono">Validar cierre</button>
+        </div>
+      </div>
 
-            <div class="map-container">
-                <div id="map"></div>
-                <div class="coordenadas-tools">
-                    <h3>Carga de Coordenadas</h3>
-                    <button id="draw-btn">Dibujar polígono</button>
-                    <input type="file" id="cargar-archivo" accept=".csv,.json">
-                    <button id="usar-gps">Usar GPS</button>
-                    <button id="validar-poligono">Validar cierre</button>
-                </div>
-            </div>
+      <div class="tabla-vertices">
+        <h3>Tabla de Vértices</h3>
+        <table id="tabla-vertices">
+          <thead>
+            <tr>
+              <th>Punto</th>
+              <th>Este (X)</th>
+              <th>Norte (Y)</th>
+              <th>Distancia (m)</th>
+              <th>Rumbo</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
 
-            <div class="tabla-vertices">
-                <h3>Tabla de Vértices</h3>
-                <table id="tabla-vertices">
-                    <thead>
-                        <tr>
-                            <th>Punto</th>
-                            <th>Este (X)</th>
-                            <th>Norte (Y)</th>
-                            <th>Distancia (m)</th>
-                            <th>Rumbo</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Filas dinámicas -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
+    <!-- Pestaña 2 -->
+    <section id="vista-pdf" class="tab-content">
+      <div id="pdf-preview">
+        <h2>Vista Preliminar del Informe Legal</h2>
+        <div id="pdf-content">
+          <!-- Contenido generado automáticamente -->
+        </div>
+        <button id="generar-pdf">🖨️ Exportar PDF</button>
+      </div>
+    </section>
+  </main>
 
-        <!-- Pestaña 2: Vista PDF -->
-        <section id="vista-pdf" class="tab-content">
-            <div id="pdf-preview">
-                <h2>Vista Preliminar del Informe Legal</h2>
-                <div id="pdf-content">
-                    <!-- Contenido generado automáticamente -->
-                </div>
-                <button id="generar-pdf">🖨️ Exportar PDF</button>
-            </div>
-        </section>
-    </main>
+  <!-- JS externos -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1jGmrzF5ZF2eO66xzDkM/vX2P79qvJiyZzXQNDfM=" crossorigin=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <!-- Script principal -->
-    <script src="script.js"></script>
+  <!-- Script personalizado -->
+  <script src="script.js"></script>
 </body>
 </html>
