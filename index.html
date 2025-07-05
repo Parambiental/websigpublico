@@ -1,188 +1,27 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Visor SIG Avanzado - Leaflet</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Plantilla CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-sA+5dCdZy+Mqsc0JxjGShV1FL+bCa49X3fNj5Gm/dPc="
-    crossorigin=""
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
-    crossorigin="anonymous"
-  />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton/src/easy-button.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar-v2/css/leaflet-sidebar.min.css" crossorigin="" />
-  <link
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    rel="stylesheet"
-    crossorigin="anonymous"
-  />
-
+  <meta charset="UTF-8">
+  <title>Mapa Leaflet Funcional</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    html, body {
+    html, body, #map {
       height: 100%;
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
-      display: flex;
-      overflow: hidden;
-    }
-    #sidebar {
-      width: 300px;
-      max-width: 100%;
-      height: 100%;
-      background: #fff;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-      transition: transform 0.3s;
-      transform: translateX(-100%);
-      position: relative;
-      z-index: 1000;
-    }
-    #sidebar.visible {
-      transform: translateX(0);
-    }
-    .leaflet-sidebar-tabs {
-      background: #f2f2f2;
-    }
-    .leaflet-sidebar-content {
-      padding: 15px;
-      overflow-y: auto;
-      height: calc(100% - 45px);
-    }
-    #map {
-      flex-grow: 1;
-      height: 100%;
-      position: relative;
-    }
-    #toggleBtn {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1100;
-      background: #0078a8;
-      color: #fff;
-      border: none;
-      padding: 8px;
-      border-radius: 4px;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-
-  <aside id="sidebar">
-    <div class="leaflet-sidebar-tabs">
-      <ul role="tablist">
-        <li><a href="#home" role="tab" aria-controls="home" aria-selected="true"><i class="fa fa-bars"></i></a></li>
-        <li><a href="#info" role="tab" aria-controls="info"><i class="fa fa-info"></i></a></li>
-      </ul>
-    </div>
-    <div class="leaflet-sidebar-content">
-      <div id="home" role="tabpanel">
-        <h2>Herramientas SIG</h2><p>Explora las herramientas disponibles.</p>
-      </div>
-      <div id="info" role="tabpanel" hidden>
-        <h2>Información</h2><p>Visor avanzado con múltiples funciones.</p>
-      </div>
-    </div>
-  </aside>
-
-  <button id="toggleBtn" aria-controls="sidebar" aria-expanded="false">☰</button>
   <div id="map"></div>
-
-  <!-- Scripts -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-sidebar-v2/js/leaflet-sidebar.min.js" crossorigin=""></script>
-
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const sidebarEl = document.getElementById('sidebar');
-      const toggleBtn = document.getElementById('toggleBtn');
-      toggleBtn.addEventListener('click', () => {
-        const visible = sidebarEl.classList.toggle('visible');
-        toggleBtn.setAttribute('aria-expanded', visible);
-      });
-
-      document.querySelectorAll('.leaflet-sidebar-tabs a').forEach(tab => {
-        tab.addEventListener('click', e => {
-          e.preventDefault();
-          document.querySelectorAll('.leaflet-sidebar-content > div').forEach(div => div.hidden = true);
-          document.getElementById(tab.getAttribute('href').substring(1)).hidden = false;
-        });
-      });
-
-      const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19, attribution: '© OpenStreetMap'
-      });
-      const stamen = L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
-        maxZoom: 20, attribution: 'Stamen Design'
-      });
-      const wms = L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
-        layers: 'topp:states', format: 'image/png', transparent: true
-      });
-
-      const map = L.map('map', {
-        center: [-25.2637, -57.5759],
-        zoom: 13,
-        fullscreenControl: true,
-        layers: [osm],
-        zoomControl: false
-      });
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
-      L.control.layers({ Osm: osm, Toner: stamen, WMS: wms }, {}, { position: 'topright', collapsed: false }).addTo(map);
-      L.control.scale({ position: 'bottomleft' }).addTo(map);
-      L.control.locate({ position: 'topleft', strings: { title: "Mi ubicación" } }).addTo(map);
-      L.control.measure({ position: 'topleft' }).addTo(map);
-      L.Control.geocoder({ position: 'topleft' }).addTo(map);
-
-      const drawn = new L.FeatureGroup().addTo(map);
-      L.control.draw({ edit: { featureGroup: drawn } }).addTo(map);
-      map.on(L.Draw.Event.CREATED, e => drawn.addLayer(e.layer));
-
-      const cluster = L.markerClusterGroup();
-      for (let i = 0; i < 50; i++) {
-        cluster.addLayer(L.marker([
-          -25.2637 + (Math.random() - 0.5) * 0.1,
-          -57.5759 + (Math.random() - 0.5) * 0.1
-        ]).bindPopup(`Marker ${i+1}`));
-      }
-      map.addLayer(cluster);
-
-      L.easyButton('fa-home', () => map.setView([-25.2637, -57.5759], 13), 'Reset View').addTo(map);
-
-      const sidebar = L.control.sidebar({
-        container: 'sidebar',
-        closeButton: false,
-        autopan: false
-      }).addTo(map);
-
-      map.on('click', e => {
-        L.popup()
-          .setLatLng(e.latlng)
-          .setContent(`Coordenadas: ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`)
-          .openOn(map);
-      });
-    });
+    const map = L.map('map').setView([-25.2637, -57.5759], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
   </script>
 </body>
 </html>
