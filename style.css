@@ -1,210 +1,518 @@
-/* Reset básico */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+/* Variables globales para colores y tamaños */
+:root {
+  --color-primary: #0078A8;
+  --color-primary-dark: #005f9e;
+  --color-primary-light: #cde6ff;
+  --color-primary-hover: #4a90e2;
+  --color-secondary: #2ecc71;
+  --color-secondary-dark: #27ae60;
+  --color-bg: #f9f9f9;
+  --color-text: #2c3e50;
+  --color-text-light: #004a7f;
+  --color-error: #e74c3c;
+  --color-error-dark: #c0392b;
+  --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --border-radius: 8px;
+  --transition-speed: 0.3s;
+  --box-shadow-base: 0 2px 12px rgba(0, 0, 0, 0.15);
+  --box-shadow-hover: 0 3px 15px rgba(0, 120, 168, 0.4);
 }
 
-/* Fuente general */
+/* Reset básico mejorado */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f9f9f9;
-    color: #2c3e50;
+  font-family: var(--font-family-base);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Encabezado y Tabs */
+/* Contenedor del control de capas */
+.layercontrol-container {
+  background-color: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow-base);
+  padding: 16px 20px;
+  font-family: var(--font-family-base);
+  max-width: 320px;
+  max-height: 500px;
+  overflow-y: auto;
+  line-height: 1.4;
+  font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  user-select: none;
+  /* Para que no se seleccione accidentalmente */
+}
+
+/* Sección dentro del control */
+.layercontrol-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Título secciones */
+.layercontrol-section h4 {
+  margin-bottom: 10px;
+  font-weight: 700;
+  font-size: 18px;
+  border-bottom: 3px solid var(--color-primary);
+  padding-bottom: 8px;
+  color: var(--color-primary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  user-select: text;
+}
+
+/* Opciones de mapa base */
+.basemap-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 12px;
+  border: 3px solid transparent;
+  border-radius: 10px;
+  transition:
+    background-color var(--transition-speed) ease,
+    border-color var(--transition-speed) ease,
+    box-shadow var(--transition-speed) ease;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.basemap-option:hover,
+.basemap-option:focus-visible {
+  background-color: #e7f3ff;
+  border-color: var(--color-primary-hover);
+  box-shadow: 0 6px 14px rgba(74, 144, 226, 0.3);
+  outline: none;
+}
+
+.basemap-option.selected {
+  border-color: var(--color-primary-dark);
+  background-color: var(--color-primary-light);
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(0, 95, 158, 0.35);
+}
+
+/* Imagen miniatura en opción de mapa base */
+.basemap-option img {
+  width: 80px;
+  height: 54px;
+  object-fit: cover;
+  margin-right: 16px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  user-select: none;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: transform var(--transition-speed);
+}
+
+.basemap-option:hover img {
+  transform: scale(1.05);
+}
+
+/* Nombre opción mapa base */
+.basemap-option span {
+  flex-grow: 1;
+  user-select: none;
+  color: var(--color-text-light);
+  font-weight: 600;
+  font-size: 16px;
+  transition: color var(--transition-speed);
+}
+
+/* Opciones de overlay */
+.overlay-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: var(--color-text-light);
+  cursor: pointer;
+  user-select: none;
+  gap: 10px;
+}
+
+.overlay-option input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+  transition: accent-color 0.3s ease;
+}
+
+.overlay-option input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Control minimapa */
+.leaflet-control-minimap {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+  border: 2px solid var(--color-primary);
+  border-radius: 8px;
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.leaflet-control-minimap:hover {
+  box-shadow: 0 4px 18px rgba(0, 120, 168, 0.7);
+}
+
+/* Header principal */
 header {
-    background: #34495e;
-    color: #fff;
-    padding: 15px 20px;
-    border-bottom: 4px solid #2ecc71;
+  background-color: #34495e;
+  color: #fff;
+  padding: 18px 24px;
+  border-bottom: 5px solid var(--color-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  user-select: none;
 }
 
 header h1 {
-    font-size: 22px;
-    margin-bottom: 10px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
+/* Pestañas (tabs) */
 .tabs {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 14px;
 }
 
 .tab-btn {
-    background: none;
-    color: white;
-    border: none;
-    font-size: 16px;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    transition: border-color 0.3s;
+  background: none;
+  color: white;
+  border: none;
+  font-size: 18px;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: border-color 0.35s ease, color 0.35s ease;
+  font-weight: 600;
+  border-radius: 6px 6px 0 0;
+}
+
+.tab-btn:hover,
+.tab-btn:focus-visible {
+  color: var(--color-secondary);
+  outline: none;
 }
 
 .tab-btn.active {
-    border-bottom: 3px solid #2ecc71;
-    font-weight: bold;
+  border-bottom: 3px solid var(--color-secondary);
+  font-weight: 700;
+  color: var(--color-secondary);
+  background-color: rgba(46, 204, 113, 0.1);
+  box-shadow: 0 3px 10px rgba(46, 204, 113, 0.3);
 }
 
 /* Contenido principal */
 main {
-    padding: 20px;
+  padding: 24px 28px;
+  flex-grow: 1;
+  background: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* Secciones de pestañas */
+/* Contenido de pestañas */
 .tab-content {
-    display: none;
+  display: none;
+  animation: fadeIn 0.5s ease forwards;
 }
 
 .tab-content.active {
-    display: block;
+  display: block;
+}
+
+/* Animación simple */
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
 }
 
 /* Formulario expediente */
 .formulario-expediente {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+  background-color: #fff;
+  padding: 24px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 28px;
+  max-width: 600px;
+  user-select: text;
 }
 
 .formulario-expediente label {
-    display: block;
-    margin-bottom: 10px;
-    font-weight: 600;
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: var(--color-text-light);
+  font-size: 16px;
 }
 
-.formulario-expediente input {
-    width: 100%;
-    padding: 8px;
-    margin-top: 4px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+.formulario-expediente input,
+.formulario-expediente select,
+.formulario-expediente textarea {
+  width: 100%;
+  padding: 10px 14px;
+  margin-top: 6px;
+  border: 1.8px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: border-color var(--transition-speed) ease;
+  font-family: var(--font-family-base);
+  resize: vertical;
 }
 
-/* Mapa y herramientas */
+.formulario-expediente input:focus,
+.formulario-expediente select:focus,
+.formulario-expediente textarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 8px rgba(0, 120, 168, 0.4);
+}
+
+/* Contenedor mapa y herramientas */
 .map-container {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    padding: 15px;
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
+  background-color: #fff;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 20px;
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1000px;
 }
 
+/* Mapa */
 #map {
-    height: 400px;
-    width: 100%;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+  height: 450px;
+  width: 100%;
+  border: 1.5px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: border-color var(--transition-speed);
 }
 
-/* Herramientas de coordenadas */
+#map:hover {
+  border-color: var(--color-primary);
+}
+
+/* Herramientas coordenadas */
 .coordenadas-tools {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
-.coordenadas-tools button, .coordenadas-tools input[type="file"] {
-    padding: 8px 12px;
-    border: none;
-    background: #2980b9;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
+.coordenadas-tools button,
+.coordenadas-tools input[type="file"] {
+  padding: 10px 18px;
+  border: none;
+  background-color: var(--color-primary);
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  box-shadow: 0 3px 10px rgba(0, 120, 168, 0.3);
+  transition: background-color var(--transition-speed);
 }
 
-.coordenadas-tools button:hover {
-    background: #3498db;
+.coordenadas-tools button:hover,
+.coordenadas-tools input[type="file"]:hover {
+  background-color: var(--color-primary-hover);
 }
 
-/* Tabla de vértices */
+/* Tabla vértices */
 .tabla-vertices {
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  background-color: #fff;
+  padding: 20px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  max-width: 1000px;
+  overflow-x: auto;
 }
 
 #tabla-vertices {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
 }
 
-#tabla-vertices th, #tabla-vertices td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: center;
+#tabla-vertices th,
+#tabla-vertices td {
+  padding: 14px 12px;
+  border: 1px solid #ddd;
+  text-align: center;
+  font-size: 15px;
+  color: var(--color-text);
 }
 
 #tabla-vertices th {
-    background: #2c3e50;
-    color: white;
+  background-color: var(--color-text);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 /* Botón eliminar */
 .eliminar-btn {
-    background: #e74c3c;
-    border: none;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 4px;
-    cursor: pointer;
+  background-color: var(--color-error);
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  transition: background-color var(--transition-speed);
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.5);
 }
 
-.eliminar-btn:hover {
-    background: #c0392b;
+.eliminar-btn:hover,
+.eliminar-btn:focus-visible {
+  background-color: var(--color-error-dark);
+  outline: none;
 }
 
-/* Vista PDF */
+/* Vista previa PDF */
 #pdf-preview {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  background-color: #fff;
+  padding: 24px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  max-width: 900px;
 }
 
 #pdf-content {
-    padding: 10px;
-    border: 1px dashed #ccc;
-    min-height: 300px;
-    margin-top: 10px;
-    background: #fefefe;
+  padding: 16px;
+  border: 1.8px dashed #ccc;
+  min-height: 320px;
+  margin-top: 12px;
+  background-color: #fefefe;
+  border-radius: 10px;
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--color-text-light);
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
+/* Botón generar PDF */
 #generar-pdf {
-    margin-top: 15px;
-    padding: 10px 20px;
-    background: #27ae60;
-    color: white;
-    font-weight: bold;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+  margin-top: 20px;
+  padding: 14px 28px;
+  background-color: var(--color-secondary-dark);
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  box-shadow: 0 5px 18px rgba(39, 174, 96, 0.5);
+  transition: background-color var(--transition-speed);
 }
 
-#generar-pdf:hover {
-    background: #2ecc71;
+#generar-pdf:hover,
+#generar-pdf:focus-visible {
+  background-color: var(--color-secondary);
+  outline: none;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .coordenadas-tools {
-        flex-direction: column;
-    }
+/* Responsive general */
+@media (max-width: 900px) {
+  .layercontrol-container {
+    max-width: 100%;
+    max-height: 400px;
+  }
+  
+  main {
+    padding: 18px 16px;
+    margin: 0 10px;
+  }
+  
+  #map {
+    height: 320px;
+  }
+  
+  .coordenadas-tools {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .formulario-expediente {
+    max-width: 100%;
+    padding: 18px 14px;
+  }
+  
+  #tabla-vertices th,
+  #tabla-vertices td {
+    font-size: 13px;
+    padding: 10px 8px;
+  }
+  
+  #generar-pdf {
+    font-size: 16px;
+    padding: 12px 24px;
+  }
+}
 
-    .formulario-expediente input {
-        font-size: 14px;
-    }
-
-    header h1 {
-        font-size: 18px;
-    }
+/* Responsive móvil pequeño */
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 20px;
+  }
+  
+  .tabs {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .tab-btn {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+  
+  .basemap-option img {
+    width: 60px;
+    height: 42px;
+    margin-right: 10px;
+  }
+  
+  .basemap-option span {
+    font-size: 14px;
+  }
+  
+  .formulario-expediente input,
+  .formulario-expediente select,
+  .formulario-expediente textarea {
+    font-size: 14px;
+  }
+  
+  #map {
+    height: 260px;
+  }
 }
