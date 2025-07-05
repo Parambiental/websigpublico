@@ -3,333 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relevamiento Ambiental - Herramienta Completa</title>
-    
-    <!-- CDNs 100% funcionales -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    
-    <style>
-        /* Estilos profesionales para tu herramienta */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
+    <title>Parambiental - Herramienta de Mensura</title>
 
-        #map {
-            flex: 1;
-            width: 100%;
-            background: #f0f0f0;
-        }
+    <!-- Estilos principales -->
+    <link rel="stylesheet" href="style.css">
 
-        .sidebar {
-            position: fixed;
-            right: 20px;
-            top: 20px;
-            padding: 15px;
-            background: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            overflow-y: auto;
-            max-height: 80vh;
-            width: 300px;
-            z-index: 1000;
-            border-radius: 8px;
-            cursor: move;
-            transition: all 0.3s ease;
-        }
+    <!-- Leaflet + Leaflet.draw -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
 
-        .sidebar-header {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        button {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 5px;
-            font-weight: 600;
-        }
-
-        button:hover {
-            background: #2ecc71;
-        }
-
-        .status-verde { background: #27ae60; color: white; padding: 3px 8px; border-radius: 3px; }
-        .status-amarillo { background: #f39c12; color: white; padding: 3px 8px; border-radius: 3px; }
-        .status-rojo { background: #e74c3c; color: white; padding: 3px 8px; border-radius: 3px; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background: #2c3e50;
-            color: white;
-        }
-
-        /* Responsive para dispositivos móviles */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                top: 0;
-                right: 0;
-                width: 100%;
-                height: 100%;
-                max-height: 100vh;
-                z-index: 9999;
-            }
-        }
-    </style>
+    <!-- Librerías JS externas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-    <div id="map"></div>
-    
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">Formulario Técnico</div>
-        
-        <form id="point-form">
-            <div class="form-group">
-                <label for="site-name">Nombre del sitio</label>
-                <input type="text" id="site-name" required>
+
+    <header>
+        <h1>📐 Parambiental - Mensura Judicial</h1>
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="mensura">🛠 Herramienta</button>
+            <button class="tab-btn" data-tab="vista-pdf">📄 Vista PDF</button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Pestaña 1: Herramienta -->
+        <section id="mensura" class="tab-content active">
+            <div class="formulario-expediente">
+                <h2>Datos del Expediente</h2>
+                <label>Expediente N° <input type="text" id="expediente"></label>
+                <label>Propietario <input type="text" id="propietario"></label>
+                <label>Profesional <input type="text" id="profesional"></label>
+                <label>Juzgado / Distrito <input type="text" id="juzgado"></label>
+                <label>Ubicación <input type="text" id="ubicacion"></label>
             </div>
-            
-            <div class="form-group">
-                <label for="site-status">Estado ambiental</label>
-                <select id="site-status" required>
-                    <option value="Verde">Verde</option>
-                    <option value="Amarillo">Amarillo</option>
-                    <option value="Rojo">Rojo</option>
-                </select>
+
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="coordenadas-tools">
+                    <h3>Carga de Coordenadas</h3>
+                    <button id="draw-btn">Dibujar polígono</button>
+                    <input type="file" id="cargar-archivo" accept=".csv,.json">
+                    <button id="usar-gps">Usar GPS</button>
+                    <button id="validar-poligono">Validar cierre</button>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label for="site-notes">Observaciones técnicas</label>
-                <textarea id="site-notes" rows="3"></textarea>
+
+            <div class="tabla-vertices">
+                <h3>Tabla de Vértices</h3>
+                <table id="tabla-vertices">
+                    <thead>
+                        <tr>
+                            <th>Punto</th>
+                            <th>Este (X)</th>
+                            <th>Norte (Y)</th>
+                            <th>Distancia (m)</th>
+                            <th>Rumbo</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Filas dinámicas -->
+                    </tbody>
+                </table>
             </div>
-            
-            <div class="form-group">
-                <label for="site-photo">Fotografías (opcional)</label>
-                <input type="file" id="site-photo" accept="image/*" multiple>
-                <div id="photo-previews" style="margin-top: 10px;"></div>
+        </section>
+
+        <!-- Pestaña 2: Vista PDF -->
+        <section id="vista-pdf" class="tab-content">
+            <div id="pdf-preview">
+                <h2>Vista Preliminar del Informe Legal</h2>
+                <div id="pdf-content">
+                    <!-- Contenido generado automáticamente -->
+                </div>
+                <button id="generar-pdf">🖨️ Exportar PDF</button>
             </div>
-            
-            <button type="submit" id="save-btn">Guardar Punto</button>
-            <button type="button" id="export-zip" style="background: #3498db;">Exportar a ZIP</button>
-        </form>
-        
-        <h3 style="margin-top: 20px;">Puntos Registrados</h3>
-        <table id="points-table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Estado</th>
-                    <th>Coordenadas</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+        </section>
+    </main>
 
-    <!-- Scripts esenciales -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.js"></script>
-
-    <script>
-        // =====================
-        // Configuración inicial
-        // =====================
-        const map = L.map('map').setView([-34.6037, -58.3816], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
-        
-        const pointsLayer = L.layerGroup().addTo(map);
-        let pointsData = [];
-
-        // ==========================
-        // Función de geolocalización
-        // ==========================
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                const userLat = position.coords.latitude;
-                const userLng = position.coords.longitude;
-                map.setView([userLat, userLng], 13);
-                L.marker([userLat, userLng]).addTo(map).bindPopup("Tu ubicación actual").openPopup();
-            }, function(error) {
-                alert("No se pudo obtener la ubicación del usuario.");
-            });
-        }
-
-        // Inicializar las herramientas de dibujo
-        const drawControl = new L.Control.Draw({
-            edit: {
-                featureGroup: pointsLayer
-            },
-            draw: {
-                polygon: false,
-                polyline: false,
-                marker: true,
-                circle: false,
-                rectangle: false
-            }
-        });
-        map.addControl(drawControl);
-
-        map.on(L.Draw.Event.CREATED, function (e) {
-            const layer = e.layer;
-            const latlng = layer.getLatLng();
-            
-            const pointData = {
-                id: Date.now(),
-                name: "Nuevo punto",
-                status: "Verde",
-                notes: "",
-                lat: latlng.lat,
-                lng: latlng.lng,
-                photos: []
-            };
-
-            addPointToMap(pointData);
-            updatePointsTable();
-        });
-
-        // ==========================
-        // Funcionalidad del formulario
-        // ==========================
-        document.getElementById('point-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const center = map.getCenter();
-            const pointData = {
-                id: Date.now(),
-                name: document.getElementById('site-name').value,
-                status: document.getElementById('site-status').value,
-                notes: document.getElementById('site-notes').value,
-                lat: center.lat,
-                lng: center.lng,
-                photos: []
-            };
-
-            // Procesar fotos
-            const photoInput = document.getElementById('site-photo');
-            if (photoInput.files.length > 0) {
-                Array.from(photoInput.files).forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        pointData.photos.push({
-                            name: file.name,
-                            data: e.target.result.split(',')[1]
-                        });
-                    };
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            addPointToMap(pointData);
-            updatePointsTable();
-            this.reset();
-        });
-
-        // Agregar punto al mapa
-        function addPointToMap(point) {
-            const marker = L.marker([point.lat, point.lng], {
-                icon: L.divIcon({
-                    className: `status-${point.status.toLowerCase()}`,
-                    html: '📍',
-                    iconSize: [30, 30]
-                })
-            }).addTo(pointsLayer);
-
-            marker.bindPopup(`
-                <b>${point.name}</b><br>
-                <b>Estado:</b> <span class="status-${point.status.toLowerCase()}">${point.status}</span><br>
-                <b>Coords:</b> ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}<br>
-                <b>Observaciones:</b> ${point.notes || 'N/A'}
-            `);
-            
-            point.marker = marker;
-            pointsData.push(point);
-        }
-
-        // Actualizar la tabla de puntos
-        function updatePointsTable() {
-            const tbody = document.querySelector('#points-table tbody');
-            tbody.innerHTML = '';
-
-            pointsData.forEach(point => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${point.name}</td>
-                    <td class="status-${point.status.toLowerCase()}">${point.status}</td>
-                    <td>${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        // =======================
-        // Exportar a ZIP
-        // =======================
-        document.getElementById('export-zip').addEventListener('click', () => {
-            if (pointsData.length === 0) {
-                alert('No hay datos para exportar');
-                return;
-            }
-
-            const zip = new JSZip();
-            const dataFolder = zip.folder('relevamiento_ambiental');
-
-            // Crear CSV
-            let csv = 'Nombre,Estado,Latitud,Longitud,Observaciones\n';
-            pointsData.forEach(point => {
-                csv += `"${point.name}","${point.status}",${point.lat},${point.lng},"${point.notes || ''}"\n`;
-            });
-            dataFolder.file('datos.csv', csv);
-
-            // Generar ZIP
-            zip.generateAsync({type:'blob'}).then(content => {
-                saveAs(content, 'relevamiento_ambiental.zip');
-            });
-        });
-    </script>
+    <!-- Script principal -->
+    <script src="script.js"></script>
 </body>
 </html>
