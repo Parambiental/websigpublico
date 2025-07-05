@@ -5,112 +5,119 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parambiental - Herramienta de Mensura</title>
 
-  <!-- Leaflet + Leaflet.draw CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-odtCw37VjLfsCkA+3kF34OgLZnP+0aE9v5tTwkG6Lk8=" crossorigin=""/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+  <!-- ✅ Leaflet CSS (con integridad y crossorigin) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-odtCw37VjLfsCkA+3kF34OgLZnP+0aE9v5tTwkG6Lk8=" crossorigin=""/>
 
-  <!-- Estilo personalizado -->
-  <link rel="stylesheet" href="style.css"/>
+  <!-- ✅ Estilo mínimo necesario -->
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background-color: #005b96;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    nav.tabs {
+      display: flex;
+      justify-content: center;
+      background: #f1f1f1;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tab-btn.active {
+      border-bottom: 3px solid #007bff;
+      color: #007bff;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .tab-content {
+      display: none;
+      padding: 1rem;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    #map {
+      width: 100%;
+      height: 500px;
+      margin-top: 10px;
+      border: 2px solid #ccc;
+    }
+  </style>
 </head>
 
 <body>
-
-  <!-- 🧭 Encabezado y Navegación -->
+  <!-- 🧭 Encabezado -->
   <header>
     <h1>📐 Parambiental - Mensura Judicial</h1>
-    <nav class="tabs">
-      <button class="tab-btn active" data-tab="mensura">🛠 Herramienta</button>
-      <button class="tab-btn" data-tab="vista-pdf">📄 Vista PDF</button>
-    </nav>
   </header>
 
+  <!-- 🔀 Tabs -->
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="mensura">🛠 Herramienta</button>
+    <button class="tab-btn" data-tab="vista-pdf">📄 Vista PDF</button>
+  </nav>
+
   <main>
-
-    <!-- 📌 Pestaña 1: Herramienta de Mensura -->
+    <!-- 🗺️ Pestaña 1 -->
     <section id="mensura" class="tab-content active">
-
-      <!-- 🔹 Formulario de Datos del Expediente -->
-      <div class="formulario-expediente">
-        <h2>Datos del Expediente</h2>
-
-        <label>Expediente N° 
-          <input type="text" id="expediente" placeholder="Ej: 1234/2025" />
-        </label>
-
-        <label>Propietario 
-          <input type="text" id="propietario" placeholder="Nombre completo" />
-        </label>
-
-        <label>Profesional 
-          <input type="text" id="profesional" placeholder="Nombre y matrícula" />
-        </label>
-
-        <label>Juzgado / Distrito 
-          <input type="text" id="juzgado" placeholder="Ej: Civil 1° Turno - Central" />
-        </label>
-
-        <label>Ubicación 
-          <input type="text" id="ubicacion" placeholder="Departamento / Distrito" />
-        </label>
-      </div>
-
-      <!-- 🗺️ Contenedor del Mapa y Herramientas -->
-      <div class="map-container">
-        <div id="map"></div>
-
-        <!-- ⚙️ Herramientas de dibujo y carga -->
-        <div class="coordenadas-tools">
-          <button id="draw-btn">Dibujar polígono</button>
-          <input type="file" id="cargar-archivo" accept=".csv,.json" />
-          <button id="usar-gps">Usar GPS</button>
-          <button id="validar-poligono">Validar cierre</button>
-        </div>
-      </div>
-
-      <!-- 📋 Tabla de Vértices -->
-      <div class="tabla-vertices">
-        <h3>Tabla de Vértices</h3>
-        <table id="tabla-vertices">
-          <thead>
-            <tr>
-              <th>Punto</th>
-              <th>Este (X)</th>
-              <th>Norte (Y)</th>
-              <th>Distancia (m)</th>
-              <th>Rumbo</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <p>Herramienta para cargar coordenadas, visualizar polígono y preparar mensura.</p>
+      <div id="map"></div>
     </section>
 
-    <!-- 📄 Pestaña 2: Vista Preliminar del Informe -->
+    <!-- 📄 Pestaña 2 -->
     <section id="vista-pdf" class="tab-content">
-      <div id="pdf-preview">
-        <h2>Vista Preliminar del Informe Legal</h2>
-
-        <!-- 🧾 Aquí se genera la vista previa -->
-        <div id="pdf-content">
-          <!-- El contenido se rellena dinámicamente desde JS -->
-        </div>
-
-        <!-- 🖨️ Botón para exportar el informe -->
-        <button id="generar-pdf">🖨️ Exportar PDF</button>
+      <h2>Vista preliminar del informe legal</h2>
+      <div id="pdf-content">
+        <p>Aquí se mostrará la vista previa del PDF.</p>
       </div>
     </section>
   </main>
 
-  <!-- JS: Leaflet y complementos -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-o9N1jGmrzF5ZF2eO66xzDkM/vX2P79qvJiyZzXQNDfM=" crossorigin=""></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <!-- ✅ Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-o9N1jGmrzF5ZF2eO66xzDkM/vX2P79qvJiyZzXQNDfM=" crossorigin=""></script>
 
-  <!-- JS: PDF y capturas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- ✅ Script de tabs + mapa -->
+  <script>
+    // Activar tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
 
-  <!-- JS: Lógica personalizada -->
-  <script src="script.js"></script>
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Cargar el mapa cuando DOM esté listo
+    document.addEventListener('DOMContentLoaded', () => {
+      const map = L.map('map').setView([-25.3, -57.6], 13); // Asunción
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      L.marker([-25.3, -57.6]).addTo(map).bindPopup("Ubicación inicial").openPopup();
+    });
+  </script>
 </body>
 </html>
