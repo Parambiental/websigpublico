@@ -1,0 +1,4 @@
+# Si está dentro de /index:
+git mv index/index.html ./index.html
+git commit -m "Mover index.html a raíz"
+git push origin main
