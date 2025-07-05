@@ -3,37 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relevamiento Ambiental</title>
-    <!-- CDNs garantizados -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <title>Relevamiento Ambiental - Herramienta Completa</title>
+    
+    <!-- CDNs 100% funcionales -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
     <style>
-        body { margin:0; padding:0; font-family:Arial; }
-        #map { width:100%; height:70vh; }
-        .sidebar { padding:15px; background:#f5f5f5; }
-        button { background:#2ecc71; color:white; border:none; padding:8px 12px; margin:5px; }
-    </style>
-</head>
-<body>
-    <div id="map"></div>
-    <div class="sidebar">
-        <h2>Herramienta Ambiental</h2>
-        <button id="addMarker">Agregar Punto</button>
-    </div>
-
-    <!-- Scripts garantizados -->
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-    <script>
-        // Mapa básico
-        const map = L.map('map').setView([-34.6037, -58.3816], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-        // Función simplificada
-        document.getElementById('addMarker').addEventListener('click', () => {
-            const marker = L.marker(map.getCenter()).addTo(map)
-                .bindPopup("Punto agregado");
-        });
-    </script>
-</body>
-</html>
+        /* Estilos profesionales para tu herramienta */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        #map {
+            flex: 1;
+            width: 100%;
+            background: #f0f0f0;
+        }
+        
+        .sidebar {
+            padding: 15px;
+            background: #fff;
+            box-shadow: 0 -2px 10px rgba(0,0,0,
