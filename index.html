@@ -1,27 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Prueba Vercel</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relevamiento Ambiental</title>
+    <!-- CDNs garantizados -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <style>
-        body { font-family: Arial; text-align: center; margin-top: 50px; }
-        .success { color: green; font-size: 2em; }
+        body { margin:0; padding:0; font-family:Arial; }
+        #map { width:100%; height:70vh; }
+        .sidebar { padding:15px; background:#f5f5f5; }
+        button { background:#2ecc71; color:white; border:none; padding:8px 12px; margin:5px; }
     </style>
 </head>
 <body>
-    <div class="success">✓</div>
-    <h1>¡Conexión Exitosa!</h1>
-    <p>Esta es una prueba mínima de que Vercel sirve archivos HTML.</p>
-    
-    <!-- Test de CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js"></script>
-    
-    <div id="map" style="height: 200px; margin: 20px auto; width: 80%;"></div>
+    <div id="map"></div>
+    <div class="sidebar">
+        <h2>Herramienta Ambiental</h2>
+        <button id="addMarker">Agregar Punto</button>
+    </div>
+
+    <!-- Scripts garantizados -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script>
-        // Prueba de Leaflet
-        const map = L.map('map').setView([-34.6037, -58.3816], 13);
+        // Mapa básico
+        const map = L.map('map').setView([-34.6037, -58.3816], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-        console.log("Leaflet funcionando correctamente");
+
+        // Función simplificada
+        document.getElementById('addMarker').addEventListener('click', () => {
+            const marker = L.marker(map.getCenter()).addTo(map)
+                .bindPopup("Punto agregado");
+        });
     </script>
 </body>
 </html>
