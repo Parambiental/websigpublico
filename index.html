@@ -4,19 +4,9 @@
     <meta charset="UTF-8" />
     <title>Visor SIG con Tabla de Atributos y Edición</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton/src/easy-button.css" crossorigin="" />
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css">
-
+    
     <style>
         html, body {
             height: 100%;
@@ -26,247 +16,99 @@
             font-family: Arial, sans-serif;
             overflow: hidden;
         }
-        #map-container {
-            height: 100%;
-            width: 70%;
-            float: left;
-        }
-        #sidebar {
-            height: 100%;
-            width: 30%;
-            float: right;
-            background-color: #f4f4f4;
-            overflow-y: auto;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-            transition: width 0.3s ease;
-        }
-        #sidebar.hidden {
-            width: 0%;
-            overflow: hidden;
-        }
-        #map-container.expanded {
-            width: 100%;
-        }
+        
         #table-container {
             padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
         }
+
         #feature-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9em;
-        }
-        #feature-table th, #feature-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
             text-align: left;
         }
+
+        #feature-table th, #feature-table td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+        }
+
         #feature-table th {
             background-color: #0078a8;
             color: white;
         }
-        #feature-table tr:nth-child(even) { background-color: #f2f2f2; }
-        #feature-table tr:hover { background-color: #ddd; }
+
+        #feature-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #feature-table tr:hover {
+            background-color: #e6f7ff;
+        }
+
         .action-button {
             cursor: pointer;
             margin: 0 5px;
             color: #0078a8;
-        }
-        .action-button:hover { color: #005f85; }
-        .color-input {
-            width: 50px;
-            height: 25px;
-            padding: 0;
-            border: none;
-            cursor: pointer;
-            vertical-align: middle;
-        }
-        #north-arrow {
-            position: absolute;
-            top: 10px;
-            right: calc(30% + 10px);
-            width: 40px;
-            z-index: 1000;
-        }
-        #sidebar.hidden + #north-arrow {
-            right: 10px;
+            font-size: 18px;
         }
 
-        /* Modal Styling */
-        .modal-backdrop {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 2000;
-            display: none; /* Hidden by default */
+        .action-button:hover {
+            color: #005f85;
+        }
+
+        .icon-container {
+            display: flex;
             justify-content: center;
-            align-items: center;
         }
-        .modal-content {
-            background: white; padding: 20px; border-radius: 8px;
-            width: 350px; max-width: 90%;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+
+        .coordinates-link {
+            color: #0078a8;
+            text-decoration: none;
+            font-weight: bold;
         }
-        .modal-content h3 { margin-top: 0; color: #0078a8;}
-        .modal-content label { display: block; margin-top: 10px; font-weight: bold; }
-        .modal-content input[type="text"], .modal-content input[type="color"] {
-            width: calc(100% - 16px); padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;
+
+        .coordinates-link:hover {
+            text-decoration: underline;
         }
-        .modal-buttons { margin-top: 20px; text-align: right; }
-        .modal-buttons button {
-            padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;
-            font-weight: bold; margin-left: 10px;
-        }
-        .modal-buttons button#cancel-edit { background-color: #ccc; color: #333; }
-        .modal-buttons button#save-edit { background-color: #0078a8; color: white; }
+
     </style>
 </head>
 <body>
 
-    <div id="map-container"></div>
-    <div id="sidebar">
-        <div id="table-container">
-            <h3>Geometrías Dibujadas</h3>
-            <table id="feature-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Nombre</th>
-                        <th>Coordenadas</th>
-                        <th>Color</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <img id="north-arrow" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/North_arrow.svg/200px-North_arrow.svg.png" alt="Norte" />
-
-    <div id="edit-modal" class="modal-backdrop">
-        <div class="modal-content">
-            <h3>Editar Geometría</h3>
-            <label for="edit-feature-name">Nombre:</label>
-            <input type="text" id="edit-feature-name">
-            
-            <label for="edit-feature-color">Color:</label>
-            <input type="color" id="edit-feature-color">
-            
-            <div class="modal-buttons">
-                <button id="cancel-edit">Cancelar</button>
-                <button id="save-edit">Guardar</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js" crossorigin=""></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
-
-    <script>
-        const map = L.map('map-container', {
-            center: [-25.2637, -57.5759],
-            zoom: 13,
-            zoomControl: false,
-            fullscreenControl: true,
-        }).on('load', () => { setTimeout(() => { map.invalidateSize() }, 100); });
-
-        const baseLayers = {
-            "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map),
-            "Google Maps (Road)": L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', { attribution: '&copy; Google' }),
-            "Google Maps (Satélite)": L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { attribution: '&copy; Google' }),
-        };
-
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-        L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
-        L.Control.geocoder({ position: 'topleft', placeholder: 'Buscar dirección...' }).addTo(map);
-        L.control.measure({ position: 'topleft', localization: 'es' }).addTo(map);
-        L.control.locate({ position: 'topleft', strings: { title: "Mi ubicación" } }).addTo(map);
-
-        const drawnItems = new L.FeatureGroup().addTo(map);
-        const drawControl = new L.Control.Draw({
-            position: 'topleft',
-            edit: { featureGroup: drawnItems },
-            draw: { circlemarker: false }
-        });
-        map.addControl(drawControl);
-
-        let featureId = 0; // ID para nuevas geometrías
-
-        function updateTable() {
-            const tbody = document.querySelector('#feature-table tbody');
-            tbody.innerHTML = ''; // Limpiar tabla
-
-            drawnItems.eachLayer(layer => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${featureId++}</td>
-                    <td>${layer instanceof L.Polygon ? 'Polígono' : 'Otro'}</td>
-                    <td><input type="text" value="${layer.feature ? layer.feature.properties.name : ''}" class="feature-name" /></td>
-                    <td>${layer.getLatLngs()}</td>
-                    <td><input type="color" class="feature-color" value="${layer.options.color || '#000000'}" /></td>
-                    <td><button class="action-button edit-btn">Editar</button><button class="action-button delete-btn">Eliminar</button></td>
-                `;
-                tbody.appendChild(row);
-            });
-
-            addTableListeners();
-        }
-
-        function addTableListeners() {
-            // Editar
-            document.querySelectorAll('.edit-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const row = e.target.closest('tr');
-                    const colorInput = row.querySelector('.feature-color');
-                    const nameInput = row.querySelector('.feature-name');
-                    const feature = drawnItems.getLayers()[row.rowIndex - 1];
-
-                    // Mostrar modal con los datos de la geometría
-                    document.getElementById('edit-modal').style.display = 'flex';
-                    document.getElementById('edit-feature-name').value = nameInput.value;
-                    document.getElementById('edit-feature-color').value = colorInput.value;
-
-                    // Guardar cambios
-                    document.getElementById('save-edit').onclick = () => {
-                        feature.setStyle({ color: document.getElementById('edit-feature-color').value });
-                        feature.feature.properties.name = document.getElementById('edit-feature-name').value;
-                        updateTable();
-                        document.getElementById('edit-modal').style.display = 'none';
-                    };
-
-                    // Cancelar edición
-                    document.getElementById('cancel-edit').onclick = () => {
-                        document.getElementById('edit-modal').style.display = 'none';
-                    };
-                });
-            });
-
-            // Eliminar
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const row = e.target.closest('tr');
-                    const feature = drawnItems.getLayers()[row.rowIndex - 1];
-                    drawnItems.removeLayer(feature);
-                    updateTable();
-                });
-            });
-        }
-
-        // Agregar geometrías al mapa y actualizar la tabla
-        map.on('draw:created', (e) => {
-            const layer = e.layer;
-            drawnItems.addLayer(layer);
-            updateTable();
-        });
-    </script>
+<div id="table-container">
+    <h3>Geometrías Dibujadas</h3>
+    <table id="feature-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Nombre</th>
+                <th>Coordenadas</th>
+                <th>Color</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>0</td>
+                <td>Otro</td>
+                <td><input type="text" value="Geometría A" class="feature-name" /></td>
+                <td><a href="https://www.google.com/maps?q=-25.265189,-57.590668" class="coordinates-link" target="_blank">LatLng(-25.265189, -57.590668)</a>, <a href="https://www.google.com/maps?q=-25.264413,-57.547574" class="coordinates-link" target="_blank">LatLng(-25.264413, -57.547574)</a>, <a href="https://www.google.com/maps?q=-25.288163,-57.558734" class="coordinates-link" target="_blank">LatLng(-25.288163, -57.558734)</a></td>
+                <td><input type="color" value="#ff0000" class="feature-color" /></td>
+                <td>
+                    <div class="icon-container">
+                        <i class="fa fa-edit action-button" title="Editar"></i>
+                        <i class="fa fa-trash action-button" title="Eliminar"></i>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 </body>
 </html>
