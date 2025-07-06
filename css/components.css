@@ -1,0 +1,53 @@
+#intro {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #111;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 9999;
+}
+
+#intro button {
+  padding: 1em 2em;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+#menuBtn, #toolsBtn {
+  position: absolute;
+  top: 10px;
+  z-index: 1001;
+  background: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+#menuBtn { left: 10px; }
+#toolsBtn { left: 120px; }
+
+#controls {
+  position: absolute;
+  top: 50px;
+  left: 10px;
+  z-index: 1000;
+  background: white;
+  padding: 10px;
+  border-radius: 5px;
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  max-width: 200px;
+}
+
+.leaflet-control-zoom {
+  bottom: 10px !important;
+  top: auto !important;
+  right: 10px !important;
+  left: auto !important;
+}
