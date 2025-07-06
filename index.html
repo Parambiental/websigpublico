@@ -1,114 +1,92 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <title>Visor SIG con Tabla de Atributos y Edición</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
-    
-    <style>
-        html, body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        
-        #table-container {
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
-        }
-
-        #feature-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9em;
-            text-align: left;
-        }
-
-        #feature-table th, #feature-table td {
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-        }
-
-        #feature-table th {
-            background-color: #0078a8;
-            color: white;
-        }
-
-        #feature-table tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        #feature-table tr:hover {
-            background-color: #e6f7ff;
-        }
-
-        .action-button {
-            cursor: pointer;
-            margin: 0 5px;
-            color: #0078a8;
-            font-size: 18px;
-        }
-
-        .action-button:hover {
-            color: #005f85;
-        }
-
-        .icon-container {
-            display: flex;
-            justify-content: center;
-        }
-
-        .coordinates-link {
-            color: #0078a8;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .coordinates-link:hover {
-            text-decoration: underline;
-        }
-
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor SIG</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="map-container" class="expanded">
+        <div id="sidebar" class="hidden">
+            <div id="table-container">
+                <h3>Geometrías Dibujadas</h3>
+                <table id="feature-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Icono</th>
+                            <th>Nombre</th>
+                            <th>Coordenadas</th>
+                            <th>Color</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>G001</td>
+                            <td><img src="https://img.icons8.com/ios/50/000000/marker.png" alt="Punto"> Punto</td>
+                            <td><img src="https://img.icons8.com/ios/50/000000/home.png" alt="Icono"> Casa</td>
+                            <td>Geometría A</td>
+                            <td>LatLng(-25.265189, -57.590668), LatLng(-25.264413, -57.547574)</td>
+                            <td><span style="background-color:#0000FF;color:white;padding:5px;">Azul</span></td>
+                            <td>
+                                <button class="action-button">
+                                    <img src="https://img.icons8.com/ios/50/000000/edit.png" alt="Editar">
+                                </button>
+                                <button class="action-button">
+                                    <img src="https://img.icons8.com/ios/50/000000/delete.png" alt="Eliminar">
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<div id="table-container">
-    <h3>Geometrías Dibujadas</h3>
-    <table id="feature-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tipo</th>
-                <th>Nombre</th>
-                <th>Coordenadas</th>
-                <th>Color</th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>0</td>
-                <td>Otro</td>
-                <td><input type="text" value="Geometría A" class="feature-name" /></td>
-                <td><a href="https://www.google.com/maps?q=-25.265189,-57.590668" class="coordinates-link" target="_blank">LatLng(-25.265189, -57.590668)</a>, <a href="https://www.google.com/maps?q=-25.264413,-57.547574" class="coordinates-link" target="_blank">LatLng(-25.264413, -57.547574)</a>, <a href="https://www.google.com/maps?q=-25.288163,-57.558734" class="coordinates-link" target="_blank">LatLng(-25.288163, -57.558734)</a></td>
-                <td><input type="color" value="#ff0000" class="feature-color" /></td>
-                <td>
-                    <div class="icon-container">
-                        <i class="fa fa-edit action-button" title="Editar"></i>
-                        <i class="fa fa-trash action-button" title="Eliminar"></i>
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+        <div id="map"></div>
+    </div>
 
+    <!-- Modal para Editar -->
+    <div id="edit-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3>Editar Geometría</h3>
+            <label for="edit-feature-name">Nombre:</label>
+            <input type="text" id="edit-feature-name" placeholder="Nombre de la geometría">
+
+            <label for="edit-feature-color">Color:</label>
+            <input type="color" id="edit-feature-color">
+
+            <label for="edit-feature-icon" id="icon-label" style="display: none;">Icono:</label>
+            <select id="edit-feature-icon" style="display: none;">
+                <option value="home">Casa</option>
+                <option value="tree">Árbol</option>
+                <option value="star">Estrella</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button id="cancel-edit">Cancelar</button>
+                <button id="save-edit">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <img id="north-arrow" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/North_arrow.svg/200px-North_arrow.svg.png" alt="Norte" />
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+    <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js"></script>
+    <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
+
+    <script>
+        // Aquí se puede agregar el código JavaScript que necesites para manejar el mapa y la interacción con los botones de edición.
+    </script>
 </body>
 </html>
