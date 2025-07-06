@@ -29,25 +29,29 @@
         }
         #map-container {
             height: 100%;
-            width: 70%; /* El mapa ocupa el 70% del ancho */
+            width: 100%; /* Initially full width */
             float: left;
+            transition: width 0.3s ease; /* Smooth transition for map width */
+        }
+        #map-container.expanded {
+            width: 100%; /* Map takes full width when sidebar is hidden */
         }
         #sidebar {
             height: 100%;
-            width: 30%; /* El panel lateral ocupa el 30% */
+            width: 0%; /* Initially hidden */
             float: right;
             background-color: #f4f4f4;
             overflow-y: auto;
             box-shadow: -2px 0 5px rgba(0,0,0,0.1);
             transition: width 0.3s ease; /* Smooth transition for sidebar width */
         }
-        #sidebar.hidden {
-            width: 0%;
-            overflow: hidden;
+        #sidebar.visible {
+            width: 30%; /* Visible width */
         }
-        #map-container.expanded {
-            width: 100%; /* Map takes full width when sidebar is hidden */
+        #map-container.sidebar-visible {
+            width: 70%; /* Map width when sidebar is visible */
         }
+
         #table-container {
             padding: 15px;
         }
@@ -55,41 +59,60 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9em;
+            table-layout: fixed; /* Fix table layout */
         }
         #feature-table th, #feature-table td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 8px 5px; /* Adjust padding for more space */
             text-align: left;
+            vertical-align: top;
+            word-wrap: break-word; /* Break long words */
+            white-space: normal; /* Allow text to wrap naturally */
         }
         #feature-table th {
             background-color: #0078a8;
             color: white;
+            font-weight: bold;
         }
         #feature-table tr:nth-child(even) { background-color: #f2f2f2; }
         #feature-table tr:hover { background-color: #ddd; }
+
+        /* Column Widths (Adjust as needed for harmonious layout) */
+        #feature-table th:nth-child(1), #feature-table td:nth-child(1) { width: 5%; } /* ID */
+        #feature-table th:nth-child(2), #feature-table td:nth-child(2) { width: 15%; } /* Tipo */
+        #feature-table th:nth-child(3), #feature-table td:nth-child(3) { width: 8%; text-align: center; } /* Icono */
+        #feature-table th:nth-child(4), #feature-table td:nth-child(4) { width: 25%; } /* Nombre */
+        #feature-table th:nth-child(5), #feature-table td:nth-child(5) { width: 22%; font-size: 0.8em; line-height: 1.2; } /* Coordenadas */
+        #feature-table th:nth-child(6), #feature-table td:nth-child(6) { width: 10%; text-align: center; } /* Color */
+        #feature-table th:nth-child(7), #feature-table td:nth-child(7) { width: 15%; text-align: center; } /* Acción */
+
+
         .action-button {
             cursor: pointer;
-            margin: 0 5px;
+            margin: 0 3px; /* Smaller margin */
             color: #0078a8;
+            font-size: 1.1em; /* Slightly larger icons */
         }
         .action-button:hover { color: #005f85; }
         .color-input {
-            width: 50px;
-            height: 25px;
+            width: 30px; /* Smaller color input */
+            height: 20px;
             padding: 0;
-            border: none;
+            border: 1px solid #ccc; /* Add a border to the color input */
             cursor: pointer;
             vertical-align: middle;
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
         }
         #north-arrow {
             position: absolute;
             top: 10px;
-            right: calc(30% + 10px); /* Adjust to new layout, outside sidebar */
+            right: 10px; /* Default to right side when sidebar is hidden */
             width: 40px;
             z-index: 1000;
+            transition: right 0.3s ease; /* Smooth transition for arrow position */
         }
-        #sidebar.hidden + #north-arrow { /* When sidebar is hidden, adjust arrow position */
-            right: 10px;
+        #map-container.sidebar-visible + #sidebar + #north-arrow { /* When sidebar is visible, adjust arrow position */
+            right: calc(30% + 10px);
         }
 
         /* Estilos para el Modal de Edición */
@@ -107,7 +130,7 @@
         }
         .modal-content h3 { margin-top: 0; color: #0078a8;}
         .modal-content label { display: block; margin-top: 10px; font-weight: bold; }
-        .modal-content input[type="text"], .modal-content input[type="color"] {
+        .modal-content input[type="text"], .modal-content input[type="color"], .modal-content select {
             width: calc(100% - 16px); padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;
         }
         .modal-buttons { margin-top: 20px; text-align: right; }
@@ -117,12 +140,41 @@
         }
         .modal-buttons button#cancel-edit { background-color: #ccc; color: #333; }
         .modal-buttons button#save-edit { background-color: #0078a8; color: white; }
+
+        /* Styles for custom awesome marker icons - to ensure they don't have default bg */
+        .awesome-marker-icon-green, .awesome-marker-icon-blue, .awesome-marker-icon-red, .awesome-marker-icon-purple, .awesome-marker-icon-darkblue, .awesome-marker-icon-orange, .awesome-marker-icon-darkred, .awesome-marker-icon-pink, .awesome-marker-icon-darkpurple, .awesome-marker-icon-cadetblue, .awesome-marker-icon-lightblue, .awesome-marker-icon-gray, .awesome-marker-icon-black {
+            background-color: transparent;
+        }
+
+        /* Responsive adjustments for smaller screens if sidebar is shown */
+        @media (max-width: 768px) {
+            #map-container.sidebar-visible {
+                width: 40%; /* Map takes less width */
+            }
+            #sidebar.visible {
+                width: 60%; /* Sidebar takes more width */
+            }
+            #map-container.sidebar-visible + #sidebar + #north-arrow {
+                right: calc(60% + 10px);
+            }
+            #feature-table th, #feature-table td {
+                padding: 6px 3px; /* Reduce padding further */
+                font-size: 0.8em; /* Smaller font for tighter fit */
+            }
+            #feature-table th:nth-child(1), #feature-table td:nth-child(1) { width: 5%; } /* ID */
+            #feature-table th:nth-child(2), #feature-table td:nth-child(2) { width: 15%; } /* Tipo */
+            #feature-table th:nth-child(3), #feature-table td:nth-child(3) { width: 8%; } /* Icono */
+            #feature-table th:nth-child(4), #feature-table td:nth-child(4) { width: 25%; } /* Nombre */
+            #feature-table th:nth-child(5), #feature-table td:nth-child(5) { width: 22%; } /* Coordenadas */
+            #feature-table th:nth-child(6), #feature-table td:nth-child(6) { width: 10%; } /* Color */
+            #feature-table th:nth-child(7), #feature-table td:nth-child(7) { width: 15%; } /* Acción */
+        }
     </style>
 </head>
 <body>
 
-    <div id="map-container"></div>
-    <div id="sidebar">
+    <div id="map-container" class="expanded"></div>
+    <div id="sidebar" class="hidden">
         <div id="table-container">
             <h3>Geometrías Dibujadas</h3>
             <table id="feature-table">
@@ -130,6 +182,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Tipo</th>
+                        <th>Icono</th>
                         <th>Nombre</th>
                         <th>Coordenadas</th>
                         <th>Color</th>
@@ -152,6 +205,10 @@
             
             <label for="edit-feature-color">Color:</label>
             <input type="color" id="edit-feature-color">
+
+            <label for="edit-feature-icon" id="icon-label" style="display: none;">Icono:</label>
+            <select id="edit-feature-icon" style="display: none;">
+                </select>
             
             <div class="modal-buttons">
                 <button id="cancel-edit">Cancelar</button>
@@ -180,7 +237,47 @@
             fillColor: '#0078a8',
             fillOpacity: 0.2
         };
-        const defaultMarkerColor = '#ff8c00'; // Naranja para puntos dibujados
+        const defaultMarkerColor = 'orange'; // Color para puntos dibujados (AwesomeMarkers usa nombres de color)
+        const defaultMarkerIcon = 'info'; // Icono por defecto para puntos dibujados (AwesomeMarkers)
+
+        // Flag to track if the sidebar has been shown at least once
+        let sidebarShown = false;
+
+        // Define a list of available icons for the dropdown
+        const availableIcons = [
+            'info', 'home', 'building', 'school', 'hospital', 'car', 'bus', 'train',
+            'bicycle', 'tree', 'map-marker', 'flag', 'camera', 'photo-video', 'cogs',
+            'bell', 'star', 'heart', 'cloud', 'thermometer', 'tint', 'fire', 'bolt',
+            'lightbulb', 'compass', 'globe', 'city', 'university', 'briefcase', 'utensils',
+            'warehouse', 'dollar-sign', 'user', 'users', 'landmark', 'place-of-worship', 'church', 'mosque', 'synagogue',
+            'clinic-medical', 'vial', 'flask', 'seedling', 'tractor', 'farm', 'warehouse',
+            'industry', 'factory', 'gavel', 'balance-scale', 'file-alt', 'book', 'book-open',
+            'store', 'shopping-cart', 'gas-pump', 'road', 'route', 'mountain', 'water',
+            'ship', 'plane', 'meteor', 'volcano', 'smog', 'sun', 'moon', 'star-half-alt',
+            'search', 'plus', 'minus', 'times', 'check', 'upload'
+        ];
+
+        // Helper for color name to hex and vice versa (for AwesomeMarkers compatibility)
+        const colorNameToHexMap = {
+            'red': '#dc3545', 'blue': '#007bff', 'green': '#28a745', 'orange': '#fd7e14', 'purple': '#6f42c1',
+            'darkblue': '#0056b3', 'darkred': '#bd2130', 'pink': '#e83e8c', 'darkpurple': '#5c359a',
+            'cadetblue': '#5f9ea0', 'lightblue': '#add8e6', 'gray': '#6c757d', 'black': '#343a40'
+        };
+
+        function hexColorFromName(colorName) {
+            return colorNameToHexMap[colorName.toLowerCase()] || colorName; // Return hex if name exists, else return original (might be hex already)
+        }
+
+        function nameColorFromHex(hex) {
+            for (const name in colorNameToHexMap) {
+                if (colorNameToHexMap[name].toLowerCase() === hex.toLowerCase()) {
+                    return name;
+                }
+            }
+            // If no matching name, use the hex value directly. AwesomeMarkers might handle hex colors, but names are safer.
+            // Or you can return a default name if you want to force named colors.
+            return 'blue'; // Fallback to a common named color if hex not found.
+        }
 
         // --- 1. CONFIGURACIÓN INICIAL DEL MAPA ---
         const initialCoords = [-25.2637, -57.5759]; // San Lorenzo, Paraguay
@@ -239,28 +336,53 @@
         const editModal = document.getElementById('edit-modal');
         const editFeatureNameInput = document.getElementById('edit-feature-name');
         const editFeatureColorInput = document.getElementById('edit-feature-color');
+        const editFeatureIconSelect = document.getElementById('edit-feature-icon');
+        const iconLabel = document.getElementById('icon-label');
         let currentLayerToEdit = null;
 
-        // Botón para mostrar/ocultar la tabla
+        // Populate the icon select dropdown
+        availableIcons.forEach(icon => {
+            const option = document.createElement('option');
+            option.value = icon;
+            // For display in the dropdown, you might want to show the actual icon
+            option.innerHTML = `<i class="fa fa-${icon}"></i> ${icon}`;
+            editFeatureIconSelect.appendChild(option);
+        });
+
+        // Botones de acción en el mapa
         L.easyBar([
             L.easyButton('fa-home', () => map.setView(initialCoords, initialZoom), 'Volver al inicio'),
             L.easyButton('fa-table', () => toggleSidebar(), 'Mostrar/Ocultar Tabla de Atributos'),
-            L.easyButton('fa-download', exportToGeoJSON, 'Exportar dibujos a GeoJSON')
+            L.easyButton('fa-download', exportDrawnToGeoJSON, 'Exportar dibujos a GeoJSON'),
+            L.easyButton('fa-cloud-download-alt', exportActiveGeoJSONLayers, 'Exportar Capas GeoJSON Activas')
         ]).addTo(map);
 
         function toggleSidebar() {
+            // Toggle 'hidden' and 'visible' classes for sidebar
             sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('visible');
+            
+            // Toggle 'expanded' and 'sidebar-visible' classes for map-container
             mapContainer.classList.toggle('expanded');
+            mapContainer.classList.toggle('sidebar-visible');
+
             // Invalida el tamaño del mapa para que se ajuste al nuevo contenedor
             setTimeout(() => { map.invalidateSize() }, 300); // Small delay for transition
         }
 
         function addFeatureToTable(layer) {
+            // If sidebar hasn't been shown yet, show it
+            if (!sidebarShown) {
+                toggleSidebar();
+                sidebarShown = true;
+            }
+
             const layerId = L.stamp(layer); // ID único interno de Leaflet
             const geomType = getGeometryType(layer);
-            const coords = getCoordinatesString(layer);
+            const coords = getCoordinatesDisplay(layer); // Display coordinates (2 lines)
             let name = layer.feature && layer.feature.properties && layer.feature.properties.name ? layer.feature.properties.name : `Objeto ${geomType} ${layerId}`;
             let color = layer.feature && layer.feature.properties && layer.feature.properties.color ? layer.feature.properties.color : (geomType === 'Point' ? defaultMarkerColor : defaultDrawingStyle.color);
+            let icon = layer.feature && layer.feature.properties && layer.feature.properties.icon ? layer.feature.properties.icon : (geomType === 'Point' ? defaultMarkerIcon : ''); // Default icon for points
 
             // Store properties in the layer for later access
             layer.feature = layer.feature || {};
@@ -269,20 +391,11 @@
                 name: name,
                 type: geomType,
                 color: color,
-                coordinates: coords // Store coordinates for easy access in table
+                icon: icon, // Store icon property
             };
 
-            // Set initial style for new drawn features
-            if (geomType === 'Point') {
-                layer.setIcon(L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div style="background-color: ${color}; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white;"></div>`,
-                    iconSize: [14, 14],
-                    iconAnchor: [7, 7]
-                }));
-            } else {
-                layer.setStyle({ color: color, weight: defaultDrawingStyle.weight, opacity: defaultDrawingStyle.opacity, fillColor: color, fillOpacity: defaultDrawingStyle.fillOpacity });
-            }
+            // Apply style/icon to the map layer
+            applyStyleToLayer(layer, geomType, color, icon);
 
             const row = tableBody.insertRow();
             row.setAttribute('data-layer-id', layerId);
@@ -290,9 +403,10 @@
             row.innerHTML = `
                 <td>${layerId}</td>
                 <td>${geomType}</td>
+                <td><i class="fa fa-${getIconForType(geomType, icon)}"></i></td>
                 <td class="feature-name-cell">${name}</td>
                 <td>${coords}</td>
-                <td><input type="color" class="color-input" value="${color}" data-layer-id="${layerId}"></td>
+                <td><input type="color" class="color-input" value="${hexColorFromName(color)}" data-layer-id="${layerId}"></td>
                 <td>
                     <i class="fa fa-eye action-button" title="Ver en mapa"></i>
                     <i class="fa fa-edit action-button" title="Editar"></i>
@@ -302,13 +416,14 @@
 
             // Add event listener for the color input directly
             row.querySelector('.color-input').addEventListener('change', function() {
-                const newColor = this.value;
-                applyColorToLayer(layer, geomType, newColor);
+                const newColor = nameColorFromHex(this.value); // Convert hex to name if possible, for AwesomeMarkers
+                applyStyleToLayer(layer, geomType, newColor, layer.feature.properties.icon); // Pass existing icon
                 layer.feature.properties.color = newColor; // Update property
+                updatePopupContent(layer);
             });
 
             // Bind popup after properties are set
-            layer.bindPopup(`<b>Nombre:</b> ${name}<br><b>Tipo:</b> ${geomType}<br><b>Coordenadas:</b> ${coords}`);
+            updatePopupContent(layer);
         }
 
         // Helper to get geometry type string
@@ -319,44 +434,69 @@
             return 'Unknown';
         }
 
-        // Helper to get coordinates string for display
-        function getCoordinatesString(layer) {
+        // Helper to get coordinates string for display (two lines)
+        function getCoordinatesDisplay(layer) {
             if (layer instanceof L.Marker) {
                 const latlng = layer.getLatLng();
-                return `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+                return `${latlng.lat.toFixed(5)}<br>${latlng.lng.toFixed(5)}`;
             }
             if (layer instanceof L.Polyline || layer instanceof L.Polygon) {
                 const latlngs = layer.getLatLngs();
                 if (latlngs.length === 0) return '';
-                // For simplicity, just show the first and last point for lines/polygons
-                if (latlngs[0] && latlngs[0].lat && latlngs[0].lng) { // Simple array of latlngs
-                    return `(${latlngs[0].lat.toFixed(3)}, ${latlngs[0].lng.toFixed(3)})...`;
-                } else if (Array.isArray(latlngs[0]) && latlngs[0][0] && latlngs[0][0].lat) { // Multi-dimensional array (e.g., polygon with holes)
-                    return `(${latlngs[0][0].lat.toFixed(3)}, ${latlngs[0][0].lng.toFixed(3)})...`;
+                // For simplicity, just show the first point for lines/polygons
+                let firstPoint;
+                if (latlngs[0] && latlngs[0].lat !== undefined) { // Simple array of latlngs
+                    firstPoint = latlngs[0];
+                } else if (Array.isArray(latlngs[0]) && latlngs[0][0] && latlngs[0][0].lat !== undefined) { // Multi-dimensional array (e.g., polygon with holes)
+                    firstPoint = latlngs[0][0];
+                }
+                if (firstPoint) {
+                    return `(${firstPoint.lat.toFixed(3)}, ${firstPoint.lng.toFixed(3)})<br>...`;
                 }
             }
             return '';
         }
 
-        // Function to apply color to the layer on the map
-        function applyColorToLayer(layer, geomType, color) {
+        // Helper to get the icon for display in the table based on type and chosen icon
+        function getIconForType(geomType, chosenIcon) {
+            if (geomType === 'Point' && chosenIcon) {
+                return chosenIcon;
+            }
+            if (geomType === 'LineString') {
+                return 'grip-lines'; // Generic line icon
+            }
+            if (geomType === 'Polygon') {
+                return 'square'; // Generic square/polygon icon
+            }
+            return 'question-circle'; // Default for unknown
+        }
+
+        // Function to apply color and icon to the layer on the map
+        function applyStyleToLayer(layer, geomType, color, icon) {
             if (geomType === 'Point') {
-                layer.setIcon(L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div style="background-color: ${color}; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white;"></div>`,
-                    iconSize: [14, 14],
-                    iconAnchor: [7, 7]
+                layer.setIcon(L.AwesomeMarkers.icon({
+                    icon: icon,
+                    markerColor: color, // Use color names (e.g., 'red', 'blue') or hex colors for AwesomeMarkers
+                    prefix: 'fa' // Font Awesome prefix
                 }));
             } else {
                 layer.setStyle({ color: color, fillColor: color });
             }
-            // Update popup content if layer has one
-            if (layer.getPopup()) {
-                const name = layer.feature.properties.name;
-                const type = layer.feature.properties.type;
-                const coords = layer.feature.properties.coordinates;
-                layer.getPopup().setContent(`<b>Nombre:</b> ${name}<br><b>Tipo:</b> ${type}<br><b>Coordenadas:</b> ${coords}`);
+        }
+
+        // Function to update the popup content
+        function updatePopupContent(layer) {
+            const name = layer.feature.properties.name;
+            const type = layer.feature.properties.type;
+            const coords = getCoordinatesDisplay(layer).replace(/<br>/g, ', '); // Use single line for popup
+            const color = layer.feature.properties.color;
+            const icon = layer.feature.properties.icon || 'N/A';
+            
+            let popupContent = `<b>Nombre:</b> ${name}<br><b>Tipo:</b> ${type}<br><b>Coordenadas:</b> ${coords}<br><b>Color:</b> ${color}`;
+            if (type === 'Point') {
+                popupContent += `<br><b>Icono:</b> <i class="fa fa-${icon}"></i> ${icon}`;
             }
+            layer.bindPopup(popupContent);
         }
 
         // Event listener for table action buttons
@@ -381,13 +521,62 @@
                 // Open edit modal
                 currentLayerToEdit = layer;
                 editFeatureNameInput.value = layer.feature.properties.name;
-                editFeatureColorInput.value = layer.feature.properties.color;
+                editFeatureColorInput.value = hexColorFromName(layer.feature.properties.color); // Convert to hex for color input
+
+                // Show/hide icon select based on geometry type
+                if (getGeometryType(layer) === 'Point') {
+                    iconLabel.style.display = 'block';
+                    editFeatureIconSelect.style.display = 'block';
+                    editFeatureIconSelect.value = layer.feature.properties.icon;
+                } else {
+                    iconLabel.style.display = 'none';
+                    editFeatureIconSelect.style.display = 'none';
+                }
                 editModal.style.display = 'flex';
             } else if (e.target.classList.contains('fa-trash')) {
                 // Delete geometry
                 drawnItems.removeLayer(layer);
                 row.remove();
             }
+        });
+
+        // Modal close/save actions
+        document.getElementById('cancel-edit').addEventListener('click', () => {
+            editModal.style.display = 'none';
+            currentLayerToEdit = null;
+        });
+
+        document.getElementById('save-edit').addEventListener('click', () => {
+            if (currentLayerToEdit) {
+                const newName = editFeatureNameInput.value;
+                const newColorHex = editFeatureColorInput.value;
+                const newColorName = nameColorFromHex(newColorHex); // Convert back to name for AwesomeMarkers
+                const newIcon = editFeatureIconSelect.value;
+                const geomType = getGeometryType(currentLayerToEdit);
+
+                currentLayerToEdit.feature.properties.name = newName;
+                currentLayerToEdit.feature.properties.color = newColorName; // Store color name
+                if (geomType === 'Point') {
+                    currentLayerToEdit.feature.properties.icon = newIcon;
+                }
+                
+                // Update map layer style
+                applyStyleToLayer(currentLayerToEdit, geomType, newColorName, newIcon);
+
+                // Update table row
+                const layerId = L.stamp(currentLayerToEdit);
+                const row = tableBody.querySelector(`tr[data-layer-id="${layerId}"]`);
+                if (row) {
+                    row.querySelector('.feature-name-cell').textContent = newName;
+                    row.querySelector('.color-input').value = newColorHex; // Keep hex in input
+                    row.querySelector('td:nth-child(3)').innerHTML = `<i class="fa fa-${getIconForType(geomType, newIcon)}"></i>`; // Update icon in table
+                }
+
+                // Update popup content
+                updatePopupContent(currentLayerToEdit);
+            }
+            editModal.style.display = 'none';
+            currentLayerToEdit = null;
         });
 
         // Event listener for drawing new features
@@ -398,9 +587,9 @@
             layer.feature = layer.feature || {};
             layer.feature.properties = {
                 name: 'Nuevo Objeto', // Default name
-                color: getGeometryType(layer) === 'Point' ? defaultMarkerColor : defaultDrawingStyle.color,
+                color: getGeometryType(layer) === 'Point' ? defaultMarkerColor : hexColorFromName(defaultDrawingStyle.color),
                 type: getGeometryType(layer),
-                coordinates: getCoordinatesString(layer)
+                icon: getGeometryType(layer) === 'Point' ? defaultMarkerIcon : '',
             };
             addFeatureToTable(layer);
         });
@@ -411,15 +600,10 @@
                 const layerId = L.stamp(layer);
                 const row = tableBody.querySelector(`tr[data-layer-id="${layerId}"]`);
                 if (row) {
-                    const newCoords = getCoordinatesString(layer);
-                    row.querySelector('td:nth-child(4)').textContent = newCoords; // Update coordinates in table
-                    layer.feature.properties.coordinates = newCoords; // Update property
+                    const newCoords = getCoordinatesDisplay(layer);
+                    row.querySelector('td:nth-child(5)').innerHTML = newCoords; // Update coordinates in table
                     // Update popup content
-                    if (layer.getPopup()) {
-                        const name = layer.feature.properties.name;
-                        const geomType = layer.feature.properties.type;
-                        layer.getPopup().setContent(`<b>Nombre:</b> ${name}<br><b>Tipo:</b> ${geomType}<br><b>Coordenadas:</b> ${newCoords}`);
-                    }
+                    updatePopupContent(layer);
                 }
             });
         });
@@ -435,40 +619,11 @@
             });
         });
 
-        // --- 6. LÓGICA DEL MODAL DE EDICIÓN ---
-        document.getElementById('save-edit').onclick = () => {
-            if (currentLayerToEdit) {
-                const newName = editFeatureNameInput.value;
-                const newColor = editFeatureColorInput.value;
-                const geomType = getGeometryType(currentLayerToEdit);
-
-                // Update layer properties
-                currentLayerToEdit.feature.properties.name = newName;
-                currentLayerToEdit.feature.properties.color = newColor;
-
-                // Update layer style on map
-                applyColorToLayer(currentLayerToEdit, geomType, newColor);
-
-                // Update table row
-                const layerId = L.stamp(currentLayerToEdit);
-                const row = tableBody.querySelector(`tr[data-layer-id="${layerId}"]`);
-                if (row) {
-                    row.querySelector('.feature-name-cell').textContent = newName;
-                    row.querySelector('.color-input').value = newColor;
-                }
-            }
-            editModal.style.display = 'none';
-            currentLayerToEdit = null;
-        };
-
-        document.getElementById('cancel-edit').onclick = () => {
-            editModal.style.display = 'none';
-            currentLayerToEdit = null;
-        };
-
         // --- 7. CAPAS DE DATOS (GeoJSON) ---
-        const overlayLayers = {};
+        const overlayLayers = {}; // To store actual L.GeoJSON layers
+        
         const geojsonFiles = [
+            // Previous GeoJSON layers
             {
                 name: "Locales de Salud (2012)",
                 url: "http://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_DE_SALUD_DGEEC2012.geojson",
@@ -483,77 +638,179 @@
                 name: "Locales Educativos (2012)",
                 url: "http://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_EDUCATIVOS_DGEEC2012.geojson",
                 style: { color: "#4daf4a", weight: 2, opacity: 0.7, fillColor: "#4daf4a", fillOpacity: 0.4 } // Green
+            },
+            // New GeoJSON layer - completed based on the partial URL
+            {
+                name: "Barrios y Localidades (2025)",
+                url: "https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/main/countries.geojson", // Example placeholder URL, replace with actual
+                style: { color: "#ff7f00", weight: 1, opacity: 0.6, fillColor: "#ff7f00", fillOpacity: 0.2 }, // Orange
+                cluster: true // Enable clustering for this layer if it has many points
             }
         ];
 
-        Promise.all(geojsonFiles.map(file => fetch(file.url).then(response => {
-            if (!response.ok) {
-                // If fetching GeoJSON fails, try a placeholder message
-                console.warn(`Error al cargar GeoJSON de ${file.name}: ${response.statusText}. Es posible que no se pueda acceder al archivo o que el servidor no permita CORS.`);
-                return null; // Return null to indicate failure for this file
-            }
-            return response.json();
-        })))
-        .then(geojsonCollections => {
-            geojsonCollections.forEach((data, index) => {
-                if (data) { // Only process if data was successfully fetched
-                    const fileInfo = geojsonFiles[index];
-                    const geojsonLayer = L.geoJSON(data, {
-                        style: fileInfo.style,
-                        onEachFeature: function(feature, layer) {
-                            let popupContent = "";
-                            if (feature.properties) {
-                                // Iterate over all properties to display them in the popup
+        // Function to load external GeoJSON files
+        function loadGeoJSONLayer(layerConfig) {
+            fetch(layerConfig.url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    let geojsonLayer;
+                    if (layerConfig.cluster) {
+                        // Use MarkerClusterGroup for clustering points
+                        const markers = L.markerClusterGroup();
+                        geojsonLayer = L.geoJSON(data, {
+                            pointToLayer: function (feature, latlng) {
+                                // Default icon for clustered layers, can be customized
+                                const markerColor = feature.properties.color || nameColorFromHex(layerConfig.style.color);
+                                const markerIcon = feature.properties.icon || 'circle'; // Default icon if not specified
+                                return L.marker(latlng, {
+                                    icon: L.AwesomeMarkers.icon({
+                                        icon: markerIcon,
+                                        markerColor: markerColor,
+                                        prefix: 'fa'
+                                    })
+                                });
+                            },
+                            style: layerConfig.style,
+                            onEachFeature: function (feature, layer) {
+                                // Bind popup with all properties
+                                let popupContent = `<strong>${layerConfig.name}</strong><br>`;
                                 for (const key in feature.properties) {
-                                    if (feature.properties.hasOwnProperty(key) && feature.properties[key]) {
-                                        popupContent += `<b>${key}:</b> ${feature.properties[key]}<br>`;
-                                    }
+                                    popupContent += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
                                 }
-                            }
-                            if (popupContent) {
                                 layer.bindPopup(popupContent);
                             }
-                        },
-                        pointToLayer: function (feature, latlng) {
-                            // Custom styling for points in GeoJSON
-                            return L.circleMarker(latlng, {
-                                radius: 6,
-                                fillOpacity: 0.8,
-                                ...fileInfo.style // Apply color from defined style
-                            });
-                        }
-                    });
-                    overlayLayers[fileInfo.name] = geojsonLayer;
-                }
-            });
+                        });
+                        markers.addLayer(geojsonLayer);
+                        geojsonLayer = markers; // The layer control will add the cluster group
+                    } else {
+                        // Standard GeoJSON layer
+                        geojsonLayer = L.geoJSON(data, {
+                            pointToLayer: function (feature, latlng) {
+                                // Apply AwesomeMarkers for points in static GeoJSON if properties exist
+                                if (feature.properties && feature.properties.icon && feature.properties.color) {
+                                    return L.marker(latlng, {
+                                        icon: L.AwesomeMarkers.icon({
+                                            icon: feature.properties.icon,
+                                            markerColor: feature.properties.color,
+                                            prefix: 'fa'
+                                        })
+                                    });
+                                }
+                                return L.marker(latlng); // Fallback to default Leaflet marker
+                            },
+                            style: layerConfig.style,
+                            onEachFeature: function (feature, layer) {
+                                let popupContent = `<strong>${layerConfig.name}</strong><br>`;
+                                for (const key in feature.properties) {
+                                    popupContent += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
+                                }
+                                layer.bindPopup(popupContent);
+                            }
+                        });
+                    }
+                    
+                    overlayLayers[layerConfig.name] = geojsonLayer;
+                    // Add the layer to the map if you want it visible by default
+                    // geojsonLayer.addTo(map); 
 
-            // Remove existing layer control and add a new one with overlays
-            map.eachControl(function(control) {
-                if (control instanceof L.Control.Layers) {
-                    map.removeControl(control);
-                }
-            });
-            L.control.layers(baseLayers, overlayLayers, { position: 'topright', collapsed: true }).addTo(map);
+                    // Update layer control
+                    updateLayerControl();
+                })
+                .catch(error => {
+                    console.error(`Error loading GeoJSON for ${layerConfig.name}:`, error);
+                });
+        }
 
-        })
-        .catch(error => console.error("Error general al cargar los datos GeoJSON:", error));
+        // Load all GeoJSON files
+        geojsonFiles.forEach(loadGeoJSONLayer);
 
-        // --- 8. FUNCIONES AUXILIARES ---
-        function exportToGeoJSON() {
-            if (drawnItems.getLayers().length === 0) {
-                alert("No hay elementos para exportar. Por favor, dibuje algo en el mapa primero.");
-                return;
+        // --- 8. CONTROL DE CAPAS ---
+        let layerControl = null; // Declare outside to update
+
+        function updateLayerControl() {
+            if (layerControl) {
+                map.removeControl(layerControl); // Remove existing control
             }
-            const data = drawnItems.toGeoJSON();
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            layerControl = L.control.layers(baseLayers, { ...overlayLayers, "Dibujos": drawnItems }, { collapsed: false }).addTo(map);
+        }
+
+        // Initial layer control setup (will be updated after GeoJSONs load)
+        updateLayerControl();
+
+        // --- 9. EXPORTAR DATOS ---
+        function exportDrawnToGeoJSON() {
+            const geojson = drawnItems.toGeoJSON();
+            const dataStr = JSON.stringify(geojson, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+            const a = document.createElement("a");
             a.href = url;
-            a.download = `dibujos_mapa_${new Date().toISOString().slice(0,10)}.geojson`;
+            a.download = "dibujos.geojson";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+        }
+
+        function exportActiveGeoJSONLayers() {
+            const activeFeatures = {
+                type: "FeatureCollection",
+                features: []
+            };
+
+            // Add drawn items
+            drawnItems.eachLayer(layer => {
+                const geojson = layer.toGeoJSON();
+                // Ensure properties are included
+                if (layer.feature && layer.feature.properties) {
+                    geojson.properties = { ...geojson.properties, ...layer.feature.properties };
+                }
+                activeFeatures.features.push(geojson);
+            });
+
+            // Add features from active GeoJSON overlay layers
+            for (const layerName in overlayLayers) {
+                if (map.hasLayer(overlayLayers[layerName])) {
+                    // If it's a MarkerClusterGroup, iterate through its layers
+                    if (overlayLayers[layerName].eachLayer) {
+                        overlayLayers[layerName].eachLayer(clusterGroupLayer => {
+                            if (clusterGroupLayer.eachLayer) { // This is for actual markers inside the cluster group
+                                clusterGroupLayer.eachLayer(markerLayer => {
+                                    activeFeatures.features.push(markerLayer.toGeoJSON());
+                                });
+                            } else { // Direct geojson layer within overlayLayers (non-clustered)
+                                if (clusterGroupLayer.toGeoJSON) { // Check if it's a Leaflet layer that can be converted
+                                    activeFeatures.features.push(clusterGroupLayer.toGeoJSON());
+                                }
+                            }
+                        });
+                    } else if (overlayLayers[layerName].toGeoJSON) { // For direct L.GeoJSON layers
+                        const geojson = overlayLayers[layerName].toGeoJSON();
+                        if (geojson.type === "FeatureCollection" && geojson.features) {
+                             activeFeatures.features.push(...geojson.features);
+                        } else if (geojson.type === "Feature") {
+                             activeFeatures.features.push(geojson);
+                        }
+                    }
+                }
+            }
+
+            const dataStr = JSON.stringify(activeFeatures, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "capas_activas.geojson";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert('Las capas activas se han exportado a capas_activas.geojson');
         }
     </script>
 </body>
