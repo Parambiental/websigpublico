@@ -1,319 +1,177 @@
-@@ -1,175 +1,152 @@
+-103,4 +103,176 @@
+    });
+  </script>
+</body>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <title>Visor SIG Avanzado - Leaflet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Plantilla CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" crossorigin="" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton/src/easy-button.css" crossorigin="" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
-
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Plugins CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton/src/easy-button.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar-v2/css/leaflet-sidebar.min.css" />
   <style>
-    html, body {
-      height: 100%; margin: 0; padding: 0;
-      font-family: Arial, sans-serif;
-      overflow: hidden;
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
     }
     #map {
-      height: 100vh;
       width: 100vw;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 0;
-    }
-    #toolbar {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1001;
-      background: white;
-      padding: 5px 10px;
-      border-radius: 6px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    #toolbar button {
-      background: #0078a8;
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    #north {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 40px;
-      z-index: 1001;
+      height: 100vh;
     }
   </style>
-    <meta charset="UTF-8" />
-    <title>Visor SIG Unificado</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" crossorigin="" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton/src/easy-button.css" crossorigin="" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
-
-    <style>
-        html, body, #map {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        #north-arrow {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 40px;
-            z-index: 1000;
-        }
-    </style>
 </head>
 <body>
-  <div id="toolbar">
-    <button onclick="map.setView([-25.2637, -57.5759], 13)"><i class="fa fa-home"></i></button>
-    <button onclick="document.querySelector('.leaflet-control-layers').classList.toggle('leaflet-control-layers-expanded')">
-      <i class="fa fa-layer-group"></i>
-    </button>
-  </div>
-
-  <img id="north" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/North_arrow.svg/200px-North_arrow.svg.png" alt="Norte" />
-
   <div id="map"></div>
-
-  <!-- Scripts -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js" crossorigin=""></script>
-  <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js" crossorigin=""></script>
-
+  <!-- Sidebar ejemplo -->
+  <div id="sidebar" class="leaflet-sidebar collapsed">
+    <div class="leaflet-sidebar-tabs">
+      <ul role="tablist">
+        <li><a href="#home" role="tab"><i class="fa fa-bars"></i></a></li>
+        <li><a href="#info" role="tab"><i class="fa fa-info"></i></a></li>
+      </ul>
+    </div>
+    <div class="leaflet-sidebar-content">
+      <div class="leaflet-sidebar-pane" id="home">
+        <h1 class="leaflet-sidebar-header">Herramientas SIG</h1>
+        <p>Explora las herramientas disponibles en este visor.</p>
+      </div>
+      <div class="leaflet-sidebar-pane" id="info">
+        <h1 class="leaflet-sidebar-header">Información</h1>
+        <p>Este visor utiliza Leaflet y más de 50 herramientas SIG.</p>
+      </div>
+    </div>
+  </div>
+  <!-- Librerías JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+  <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js"></script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js"></script>
+  <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js"></script>
+  <script src="https://unpkg.com/leaflet-sidebar-v2/js/leaflet-sidebar.min.js"></script>
+  <!-- FontAwesome para iconos del sidebar -->
+  <script src="https://kit.fontawesome.com/1d2a7f6e5c.js" crossorigin="anonymous"></script>
   <script>
-    // --- Definir capas base ---
+    // Inicialización del mapa
+    const map = L.map('map', {
+      fullscreenControl: true
+    }).setView([-25.2637, -57.5759], 13);
+
+    // Capas base
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '© OpenStreetMap'
-    });
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
     const stamenToner = L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
-      maxZoom: 20, attribution: 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap'
+      maxZoom: 20,
+      attribution: 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap'
     });
 
-    const google = L.tileLayer('http://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
-      maxZoom: 19, attribution: '© Google'
+    // Capa WMS de ejemplo
+    const catastroWMS = L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
+      layers: 'topp:states',
+      format: 'image/png',
+      transparent: true,
+      attribution: 'Ejemplo WMS'
     });
 
-    const humanitarian = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      maxZoom: 20, attribution: '© OpenStreetMap HOT'
-    });
-
-    // --- Inicializar el mapa ---
-    const map = L.map('map', {
-      center: [-25.2637, -57.5759],
-      zoom: 13,
-      layers: [osm],
-      zoomControl: false,
-      fullscreenControl: true
-    });
-
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-    L.control.scale({ position: 'bottomleft' }).addTo(map);
-    L.control.locate({ position: 'topleft', strings: { title: "Mi ubicación" } }).addTo(map);
-    L.control.measure({ position: 'topleft' }).addTo(map);
-    L.Control.geocoder({ position: 'topleft' }).addTo(map);
-
-    // --- Agregar clúster de marcadores ---
-    const cluster = L.markerClusterGroup();
-    for (let i = 0; i < 50; i++) {
-      cluster.addLayer(L.marker([
-        -25.2637 + (Math.random() - 0.5) * 0.1,
-        -57.5759 + (Math.random() - 0.5) * 0.1
-      ]).bindPopup(`Punto de Interés #${i + 1}`));
-    }
-    map.addLayer(cluster);
-
-    // --- Añadir capas base y overlays ---
-    const baseMaps = {
-      "OSM": osm,
+    // Control de capas
+    const baseLayers = {
+      "OpenStreetMap": osm,
       "Stamen Toner": stamenToner,
-      "Google Maps": google,
-      "Humanitario": humanitarian
     };
+    const overlays = {
+      "Catastro WMS": catastroWMS,
+    };
+    L.control.layers(baseLayers, overlays, { collapsed: false }).addTo(map);
 
-    L.control.layers(baseMaps, {}, { position: 'topright', collapsed: true }).addTo(map);
+    // Minimapa
+    const miniMap = new L.Control.MiniMap(osm, { toggleDisplay: true }).addTo(map);
 
-    // --- Control para volver al inicio ---
-    L.easyButton('fa-home', function (btn, map) {
-      map.setView([-25.2637, -57.5759], 13);
-    }, 'Volver al inicio').addTo(map);
+    // Control de escala
+    L.control.scale().addTo(map);
 
-    // --- Capa de dibujo ---
+    // Geolocalización
+    L.control.locate({ position: "topleft", strings: { title: "Mostrar mi ubicación" } }).addTo(map);
+
+    // Medición de distancias y áreas
+    L.control.measure({ position: 'topleft' }).addTo(map);
+
+    // Geocodificador (buscador de direcciones)
+    L.Control.geocoder().addTo(map);
+
+    // Dibujo y edición
     const drawnItems = new L.FeatureGroup();
     map.addLayer(drawnItems);
-
-    const drawControl = new L.Control.Draw({ edit: { featureGroup: drawnItems } });
+    const drawControl = new L.Control.Draw({
+      edit: { featureGroup: drawnItems },
+      draw: {
+        polygon: true,
+        polyline: true,
+        rectangle: true,
+        circle: true,
+        marker: true,
+      },
+    });
     map.addControl(drawControl);
-
-    map.on(L.Draw.Event.CREATED, (e) => {
+    map.on(L.Draw.Event.CREATED, function (e) {
       drawnItems.addLayer(e.layer);
     });
 
-    // --- Exportar los datos dibujados a GeoJSON ---
-    function exportToGeoJSON() {
-      const geojson = drawnItems.toGeoJSON();
-      const blob = new Blob([JSON.stringify(geojson)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "drawn-data.geojson";
-      a.click();
+    // Agrupación de marcadores (ejemplo)
+    const markers = L.markerClusterGroup();
+    for (let i = 0; i < 100; i++) {
+      const marker = L.marker([
+        -25.2637 + (Math.random() - 0.5) * 0.1,
+        -57.5759 + (Math.random() - 0.5) * 0.1
+      ]).bindPopup('Marcador ' + (i + 1));
+      markers.addLayer(marker);
     }
-    <div id="map"></div>
-    <img id="north-arrow" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/North_arrow.svg/200px-North_arrow.svg.png" alt="Norte" />
+    map.addLayer(markers);
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js" crossorigin=""></script>
+    // Botón personalizado (ejemplo)
+    L.easyButton('fa-home', function(btn, map){
+      map.setView([-25.2637, -57.5759], 13);
+    }, 'Volver al inicio').addTo(map);
 
-    <script>
-        // --- 1. CONFIGURACIÓN INICIAL ---
-        const initialCoords = [-25.2637, -57.5759];
-        const initialZoom = 13;
+    // Sidebar
+    const sidebar = L.control.sidebar({
+      autopan: true,
+      closeButton: true,
+      container: 'sidebar',
+      position: 'right'
+    }).addTo(map);
 
-        const map = L.map('map', {
-            center: initialCoords,
-            zoom: initialZoom,
-            zoomControl: false, 
-            fullscreenControl: true,
-        });
+    // Pantalla completa (ya integrado en la inicialización)
 
-        // --- 2. CAPAS BASE ---
-        const baseLayers = {
-            "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }),
-            "Google Maps": L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
-                attribution: '&copy; Google'
-            }),
-            "Stamen Toner": L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
-                attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>.'
-            }),
-            "Humanitario": L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
-            })
-        };
-        baseLayers["OpenStreetMap"].addTo(map);
+    // Agrega aquí más plugins y herramientas según la lista sugerida.
+    // Ejemplo: Leaflet.heat, leaflet-timedimension, leaflet-routing-machine, etc.
+    // Consulta https://leafletjs.com/plugins.html para más opciones.
 
-        // --- 3. CONTROLES DEL MAPA ---
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-        L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
-        L.control.layers(baseLayers, {}, { position: 'topright', collapsed: true }).addTo(map);
-        L.Control.geocoder({ position: 'topleft', placeholder: 'Buscar dirección...' }).addTo(map);
-        L.control.measure({ position: 'topleft', localization: 'es' }).addTo(map);
-        L.control.locate({ position: 'topleft', strings: { title: "Mi ubicación" } }).addTo(map);
-        
-        new L.Control.MiniMap(L.tileLayer(baseLayers.OpenStreetMap._url), {
-            position: 'bottomright',
-            toggleDisplay: true,
-            minimized: true
-        }).addTo(map);
-        
-        // --- 4. BOTONES Y HERRAMIENTAS PERSONALIZADAS ---
-        L.easyBar([
-            L.easyButton('fa-home', () => map.setView(initialCoords, initialZoom), 'Volver al inicio'),
-            L.easyButton('fa-download', exportToGeoJSON, 'Exportar dibujos a GeoJSON')
-        ]).addTo(map);
-
-        const drawnItems = new L.FeatureGroup().addTo(map);
-        const drawControl = new L.Control.Draw({
-            position: 'topleft',
-            edit: { featureGroup: drawnItems },
-            draw: { circlemarker: false }
-        });
-        map.addControl(drawControl);
-
-        // --- 5. CAPAS DE DATOS ---
-        const markerCluster = L.markerClusterGroup();
-        for (let i = 0; i < 50; i++) {
-            const lat = initialCoords[0] + (Math.random() - 0.5) * 0.1;
-            const lng = initialCoords[1] + (Math.random() - 0.5) * 0.1;
-            markerCluster.addLayer(
-                L.marker([lat, lng]).bindPopup(`Punto de Interés Aleatorio #${i + 1}`)
-            );
-        }
-        map.addLayer(markerCluster);
-
-        // --- 6. EVENTOS DEL MAPA ---
-        map.on(L.Draw.Event.CREATED, e => {
-            drawnItems.addLayer(e.layer);
-        });
-
-        map.on('click', e => {
-            L.popup()
-                .setLatLng(e.latlng)
-                .setContent(`<b>Coordenadas:</b><br>${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`)
-                .openOn(map);
-        });
-
-        // --- 7. FUNCIONES AUXILIARES ---
-        function exportToGeoJSON() {
-            if (drawnItems.getLayers().length === 0) {
-                alert("No hay elementos para exportar. Por favor, dibuje algo en el mapa primero.");
-                return;
-            }
-            const data = drawnItems.toGeoJSON();
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `dibujos_mapa_${new Date().toISOString().slice(0,10)}.geojson`;
-            document.body.appendChild(a);
-a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-    </script>
-
-    // --- Añadir evento de click en el mapa ---
-    map.on('click', (e) => {
+    // Ejemplo: Mostrar coordenadas al hacer clic
+    map.on('click', function(e) {
       L.popup()
         .setLatLng(e.latlng)
-        .setContent(`Coordenadas: ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`)
+        .setContent('Coordenadas: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5))
         .openOn(map);
     });
   </script>
 </body>
+</html>
+
 </html>
