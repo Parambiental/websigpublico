@@ -1,517 +1,267 @@
 /* Variables globales para colores y tamaños */
 :root {
-  --color-primary: #0078A8;
-  --color-primary-dark: #005f9e;
-  --color-primary-light: #cde6ff;
-  --color-primary-hover: #4a90e2;
-  --color-secondary: #2ecc71;
-  --color-secondary-dark: #27ae60;
-  --color-bg: #f9f9f9;
-  --color-text: #2c3e50;
-  --color-text-light: #004a7f;
-  --color-error: #e74c3c;
-  --color-error-dark: #c0392b;
-  --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  --border-radius: 8px;
-  --transition-speed: 0.3s;
-  --box-shadow-base: 0 2px 12px rgba(0, 0, 0, 0.15);
-  --box-shadow-hover: 0 3px 15px rgba(0, 120, 168, 0.4);
+    --color-primary: #0078A8;
+    --color-primary-dark: #005f9e;
+    --color-primary-light: #cde6ff;
+    --color-primary-hover: #4a90e2;
+    --color-secondary: #2ecc71;
+    --color-secondary-dark: #27ae60;
+    --color-bg: #f9f9f9;
+    --color-text: #2c3e50;
+    --color-text-light: #004a7f;
+    --color-error: #e74c3c;
+    --color-error-dark: #c0392b;
+    --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --border-radius: 8px;
+    --transition-speed: 0.3s;
+    --box-shadow-base: 0 2px 12px rgba(0, 0, 0, 0.15);
+    --box-shadow-hover: 0 3px 15px rgba(0, 120, 168, 0.4);
 }
 
-/* Reset básico mejorado */
+/* Reset básico */
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 html, body {
-  height: 100%;
-  width: 100%;
-  font-family: var(--font-family-base);
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow: hidden;
-  display: flex;
-  flex-direction: row; /* Sidebar + Mapa lado a lado */
+    height: 100%;
+    width: 100%;
+    font-family: var(--font-family-base);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
 }
 
-/* Sidebar */
+/* Contenedor principal (mapa + sidebar) */
+#map-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    transition: width var(--transition-speed);
+}
+
 #sidebar {
-  width: 320px;
-  max-width: 100%;
-  height: 100vh;
-  background: white;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-  transition: transform var(--transition-speed) ease, width var(--transition-speed) ease;
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
+    width: 0;
+    background: #f4f4f4;
+    overflow-y: auto;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    transition: width var(--transition-speed);
 }
 
-/* Sidebar colapsado */
-.leaflet-sidebar.collapsed {
-  transform: translateX(-100%);
-  width: 0 !important;
-  overflow: hidden;
-  pointer-events: none;
+#sidebar.visible {
+    width: 30%;
 }
 
-/* Tabs sidebar */
-.leaflet-sidebar-tabs {
-  display: flex;
-  border-bottom: 2px solid var(--color-primary);
-  background-color: #f0f6fb;
-}
-
-.leaflet-sidebar-tabs ul {
-  display: flex;
-  list-style: none;
-  width: 100%;
-  padding-left: 0;
-  margin: 0;
-}
-
-.leaflet-sidebar-tabs li {
-  flex: 1;
-  text-align: center;
-}
-
-.leaflet-sidebar-tabs li a {
-  display: inline-block;
-  font-size: 18px;
-  color: var(--color-primary);
-  padding: 12px 0;
-  cursor: pointer;
-  user-select: none;
-  transition: color var(--transition-speed);
-}
-
-.leaflet-sidebar-tabs li a[aria-selected="true"],
-.leaflet-sidebar-tabs li a:hover,
-.leaflet-sidebar-tabs li a:focus-visible {
-  color: var(--color-primary-dark);
-  outline: none;
-}
-
-/* Contenido sidebar */
-.leaflet-sidebar-content {
-  padding: 16px 20px;
-  color: var(--color-text);
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
-.leaflet-sidebar-pane {
-  display: none;
-}
-
-.leaflet-sidebar-pane[hidden] {
-  display: none !important;
-}
-
-.leaflet-sidebar-pane:not([hidden]) {
-  display: block;
-}
-
-.leaflet-sidebar-header {
-  font-weight: 700;
-  font-size: 1.4rem;
-  margin-bottom: 12px;
-  color: var(--color-primary);
-  user-select: text;
-}
-
-/* Mapa */
 #map {
-  flex-grow: 1;
-  height: 100vh;
-  width: calc(100% - 320px);
-  transition: width var(--transition-speed);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow-base);
-  border: 1.5px solid #ccc;
+    flex-grow: 1;
+    height: 100vh;
+    border-radius: var(--border-radius);
+    border: 1.5px solid #ccc;
+    transition: width var(--transition-speed);
 }
 
-.leaflet-sidebar.collapsed ~ #map {
-  width: 100% !important;
+/* Tabla de Geometrías */
+#table-container {
+    padding: 15px;
+    max-height: calc(100vh - 80px); /* Ajuste del espacio visible */
+    overflow-y: auto;
 }
 
-/* Opciones capa base (ejemplo para controlar con CSS si haces selector personalizado) */
-.basemap-option {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  padding: 8px 12px;
-  border: 3px solid transparent;
-  border-radius: 10px;
-  transition:
-    background-color var(--transition-speed) ease,
-    border-color var(--transition-speed) ease,
-    box-shadow var(--transition-speed) ease;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+#feature-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Para mejor control sobre el ancho de las columnas */
 }
 
-.basemap-option:hover,
-.basemap-option:focus-visible {
-  background-color: #e7f3ff;
-  border-color: var(--color-primary-hover);
-  box-shadow: 0 6px 14px rgba(74, 144, 226, 0.3);
-  outline: none;
+#feature-table th, #feature-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+    vertical-align: middle;
+    word-wrap: break-word;
 }
 
-.basemap-option.selected {
-  border-color: var(--color-primary-dark);
-  background-color: var(--color-primary-light);
-  font-weight: 700;
-  box-shadow: 0 8px 20px rgba(0, 95, 158, 0.35);
+#feature-table th {
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: bold;
 }
 
-.basemap-option img {
-  width: 80px;
-  height: 54px;
-  object-fit: cover;
-  margin-right: 16px;
-  border-radius: 6px;
-  flex-shrink: 0;
-  user-select: none;
-  pointer-events: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  transition: transform var(--transition-speed);
+#feature-table tr:nth-child(even) { 
+    background-color: #f2f2f2;
 }
 
-.basemap-option:hover img {
-  transform: scale(1.05);
+#feature-table tr:hover { 
+    background-color: #ddd;
 }
 
-.basemap-option span {
-  flex-grow: 1;
-  user-select: none;
-  color: var(--color-text-light);
-  font-weight: 600;
-  font-size: 16px;
-  transition: color var(--transition-speed);
+/* Iconos en la tabla */
+#feature-table .action-button {
+    cursor: pointer;
+    margin: 0 5px;
+    color: var(--color-primary);
 }
 
-/* Control minimapa */
-.leaflet-control-minimap {
-  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
-  border: 2px solid var(--color-primary);
-  border-radius: 8px;
-  transition: box-shadow 0.3s ease-in-out;
+#feature-table .action-button:hover {
+    color: var(--color-primary-dark);
 }
 
-.leaflet-control-minimap:hover {
-  box-shadow: 0 4px 18px rgba(0, 120, 168, 0.7);
+#feature-table img {
+    width: 20px;
+    height: 20px;
 }
 
-/* Botones y controles personalizados */
-/* Por ejemplo para botón easybutton */
+/* Estilos para el Modal de Edición */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none; /* Oculto por defecto */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: var(--border-radius);
+    width: 350px;
+    max-width: 90%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: var(--color-primary);
+}
+
+.modal-content label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="color"],
+.modal-content select {
+    width: calc(100% - 16px);
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.modal-buttons {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.modal-buttons button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.modal-buttons button#cancel-edit {
+    background-color: #ccc;
+    color: #333;
+}
+
+.modal-buttons button#save-edit {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* Control del Norte */
+#north-arrow {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    z-index: 1000;
+    transition: right 0.3s ease;
+}
+
+#map-container.sidebar-visible + #sidebar + #north-arrow {
+    right: calc(30% + 10px);
+}
+
+/* Botones de control */
 .leaflet-easybutton-button {
-  background-color: var(--color-primary);
-  border-radius: 6px;
-  box-shadow: var(--box-shadow-base);
-  transition: background-color var(--transition-speed);
-  color: white;
+    background-color: var(--color-primary);
+    border-radius: 6px;
+    box-shadow: var(--box-shadow-base);
+    transition: background-color var(--transition-speed);
+    color: white;
 }
 
 .leaflet-easybutton-button:hover {
-  background-color: var(--color-primary-hover);
+    background-color: var(--color-primary-hover);
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-  #sidebar {
-    width: 280px;
-  }
-  #map {
-    width: calc(100% - 280px);
-  }
+/* Estilos para iconos personalizados de AwesomeMarkers */
+.awesome-marker-icon-green, 
+.awesome-marker-icon-blue, 
+.awesome-marker-icon-red, 
+.awesome-marker-icon-purple,
+.awesome-marker-icon-darkblue, 
+.awesome-marker-icon-orange, 
+.awesome-marker-icon-darkred, 
+.awesome-marker-icon-pink, 
+.awesome-marker-icon-darkpurple, 
+.awesome-marker-icon-cadetblue, 
+.awesome-marker-icon-lightblue, 
+.awesome-marker-icon-gray, 
+.awesome-marker-icon-black {
+    background-color: transparent;
+}
+
+/* Ajustes de pantalla pequeña (Responsive) */
+@media (max-width: 768px) {
+    #map-container.sidebar-visible {
+        width: 40%;
+    }
+
+    #sidebar.visible {
+        width: 60%;
+    }
+
+    #map-container.sidebar-visible + #sidebar + #north-arrow {
+        right: calc(60% + 10px);
+    }
+
+    #feature-table th, #feature-table td {
+        padding: 6px 3px;
+        font-size: 0.8em;
+    }
 }
 
 @media (max-width: 600px) {
-  body {
-    flex-direction: column;
-  }
-  #sidebar {
-    width: 100%;
-    height: 240px;
-    box-shadow: none;
-    overflow-x: auto;
-    display: flex;
-    flex-direction: row;
-  }
-  .leaflet-sidebar-tabs ul {
-    flex-direction: row;
-  }
-  #map {
-    width: 100% !important;
-    height: calc(100vh - 240px);
-  }
-<style>
-        html, body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        #map-container {
-            height: 100%;
-            width: 100%; /* Initially full width */
-            float: left;
-            transition: width 0.3s ease; /* Smooth transition for map width */
-        }
-        #map-container.expanded {
-            width: 100%; /* Map takes full width when sidebar is hidden */
-        }
-        #sidebar {
-            height: 100%;
-            width: 0%; /* Initially hidden */
-            float: right;
-            background-color: #f4f4f4;
-            overflow-y: auto;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-            transition: width 0.3s ease; /* Smooth transition for sidebar width */
-        }
-        #sidebar.visible {
-            width: 30%; /* Visible width */
-        }
-        #map-container.sidebar-visible {
-            width: 70%; /* Map width when sidebar is visible */
-        }
+    body {
+        flex-direction: column;
+    }
 
-        #table-container {
-            padding: 15px;
-        }
-        #feature-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9em;
-            table-layout: fixed; /* Fix table layout */
-        }
-        #feature-table th, #feature-table td {
-            border: 1px solid #ddd;
-            padding: 8px 5px; /* Adjust padding for more space */
-            text-align: left;
-            vertical-align: top;
-            word-wrap: break-word; /* Break long words */
-            white-space: normal; /* Allow text to wrap naturally */
-        }
-        #feature-table th {
-            background-color: #0078a8;
-            color: white;
-            font-weight: bold;
-        }
-        #feature-table tr:nth-child(even) { background-color: #f2f2f2; }
-        #feature-table tr:hover { background-color: #ddd; }
+    #sidebar {
+        width: 100%;
+        height: 240px;
+        box-shadow: none;
+        overflow-x: auto;
+    }
 
-        /* Column Widths (Adjust as needed for harmonious layout) */
-        #feature-table th:nth-child(1), #feature-table td:nth-child(1) { width: 5%; } /* ID */
-        #feature-table th:nth-child(2), #feature-table td:nth-child(2) { width: 15%; } /* Tipo */
-        #feature-table th:nth-child(3), #feature-table td:nth-child(3) { width: 8%; text-align: center; } /* Icono */
-        #feature-table th:nth-child(4), #feature-table td:nth-child(4) { width: 25%; } /* Nombre */
-        #feature-table th:nth-child(5), #feature-table td:nth-child(5) { width: 22%; font-size: 0.8em; line-height: 1.2; } /* Coordenadas */
-        #feature-table th:nth-child(6), #feature-table td:nth-child(6) { width: 10%; text-align: center; } /* Color */
-        #feature-table th:nth-child(7), #feature-table td:nth-child(7) { width: 15%; text-align: center; } /* Acción */
-
-
-        .action-button {
-            cursor: pointer;
-            margin: 0 3px; /* Smaller margin */
-            color: #0078a8;
-            font-size: 1.1em; /* Slightly larger icons */
-        }
-        .action-button:hover { color: #005f85; }
-        .color-input {
-            width: 30px; /* Smaller color input */
-            height: 20px;
-            padding: 0;
-            border: 1px solid #ccc; /* Add a border to the color input */
-            cursor: pointer;
-            vertical-align: middle;
-            box-sizing: border-box; /* Include padding and border in the element's total width and height */
-        }
-        #north-arrow {
-            position: absolute;
-            top: 10px;
-            right: 10px; /* Default to right side when sidebar is hidden */
-            width: 40px;
-            z-index: 1000;
-            transition: right 0.3s ease; /* Smooth transition for arrow position */
-        }
-        #map-container.sidebar-visible + #sidebar + #north-arrow { /* When sidebar is visible, adjust arrow position */
-            right: calc(30% + 10px);
-        }
-
-        /* Estilos para el Modal de Edición */
-        .modal-backdrop {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 2000;
-            display: none; /* Oculto por defecto */
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: white; padding: 20px; border-radius: 8px;
-            width: 350px; max-width: 90%;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .modal-content h3 { margin-top: 0; color: #0078a8;}
-        .modal-content label { display: block; margin-top: 10px; font-weight: bold; }
-        .modal-content input[type="text"], .modal-content input[type="color"], .modal-content select {
-            width: calc(100% - 16px); padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;
-        }
-        .modal-buttons { margin-top: 20px; text-align: right; }
-        .modal-buttons button {
-            padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;
-            font-weight: bold; margin-left: 10px;
-        }
-        .modal-buttons button#cancel-edit { background-color: #ccc; color: #333; }
-        .modal-buttons button#save-edit { background-color: #0078a8; color: white; }
-
-        /* Styles for custom awesome marker icons - to ensure they don't have default bg */
-        .awesome-marker-icon-green, .awesome-marker-icon-blue, .awesome-marker-icon-red, .awesome-marker-icon-purple, .awesome-marker-icon-darkblue, .awesome-marker-icon-orange, .awesome-marker-icon-darkred, .awesome-marker-icon-pink, .awesome-marker-icon-darkpurple, .awesome-marker-icon-cadetblue, .awesome-marker-icon-lightblue, .awesome-marker-icon-gray, .awesome-marker-icon-black {
-            background-color: transparent;
-        }
-
-        /* Responsive adjustments for smaller screens if sidebar is shown */
-        @media (max-width: 768px) {
-            #map-container.sidebar-visible {
-                width: 40%; /* Map takes less width */
-            }
-            #sidebar.visible {
-                width: 60%; /* Sidebar takes more width */
-            }
-            #map-container.sidebar-visible + #sidebar + #north-arrow {
-                right: calc(60% + 10px);
-            }
-            #feature-table th, #feature-table td {
-                padding: 6px 3px; /* Reduce padding further */
-                font-size: 0.8em; /* Smaller font for tighter fit */
-            }
-            #feature-table th:nth-child(1), #feature-table td:nth-child(1) { width: 5%; } /* ID */
-            #feature-table th:nth-child(2), #feature-table td:nth-child(2) { width: 15%; } /* Tipo */
-            #feature-table th:nth-child(3), #feature-table td:nth-child(3) { width: 8%; } /* Icono */
-            #feature-table th:nth-child(4), #feature-table td:nth-child(4) { width: 25%; } /* Nombre */
-            #feature-table th:nth-child(5), #feature-table td:nth-child(5) { width: 22%; } /* Coordenadas */
-            #feature-table th:nth-child(6), #feature-table td:nth-child(6) { width: 10%; } /* Color */
-            #feature-table th:nth-child(7), #feature-table td:nth-child(7) { width: 15%; } /* Acción */
-        }
-    </style>
-</head>
-<body>
-
-    <div id="map-container" class="expanded"></div>
-    <div id="sidebar" class="hidden">
-        <div id="table-container">
-            <h3>Geometrías Dibujadas</h3>
-            <table id="feature-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tipo</th>
-                        <th>Icono</th>
-                        <th>Nombre</th>
-                        <th>Coordenadas</th>
-                        <th>Color</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <img id="north-arrow" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/North_arrow.svg/200px-North_arrow.svg.png" alt="Norte" />
-
-    <div id="edit-modal" class="modal-backdrop">
-        <div class="modal-content">
-            <h3>Editar Geometría</h3>
-            <label for="edit-feature-name">Nombre:</label>
-            <input type="text" id="edit-feature-name">
-            
-            <label for="edit-feature-color">Color:</label>
-            <input type="color" id="edit-feature-color">
-
-            <label for="edit-feature-icon" id="icon-label" style="display: none;">Icono:</label>
-            <select id="edit-feature-icon" style="display: none;">
-                </select>
-            
-            <div class="modal-buttons">
-                <button id="cancel-edit">Cancelar</button>
-                <button id="save-edit">Guardar</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js" crossorigin=""></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
-
-    <script>
-        // --- 0. CONFIGURACIÓN DE ESTILOS POR DEFECTO ---
-        const defaultDrawingStyle = {
-            color: '#0078a8', // Azul principal
-            weight: 3,
-            opacity: 0.8,
-            fillColor: '#0078a8',
-            fillOpacity: 0.2
-        };
-        const defaultMarkerColor = 'orange'; // Color para puntos dibujados (AwesomeMarkers usa nombres de color)
-        const defaultMarkerIcon = 'info'; // Icono por defecto para puntos dibujados (AwesomeMarkers)
-
-        // Flag to track if the sidebar has been shown at least once
-        let sidebarShown = false;
-
-        // Define a list of available icons for the dropdown
-        const availableIcons = [
-            'info', 'home', 'building', 'school', 'hospital', 'car', 'bus', 'train',
-            'bicycle', 'tree', 'map-marker', 'flag', 'camera', 'photo-video', 'cogs',
-            'bell', 'star', 'heart', 'cloud', 'thermometer', 'tint', 'fire', 'bolt',
-            'lightbulb', 'compass', 'globe', 'city', 'university', 'briefcase', 'utensils',
-            'warehouse', 'dollar-sign', 'user', 'users', 'landmark', 'place-of-worship', 'church', 'mosque', 'synagogue',
-            'clinic-medical', 'vial', 'flask', 'seedling', 'tractor', 'farm', 'warehouse',
-            'industry', 'factory', 'gavel', 'balance-scale', 'file-alt', 'book', 'book-open',
-            'store', 'shopping-cart', 'gas-pump', 'road', 'route', 'mountain', 'water',
-            'ship', 'plane', 'meteor', 'volcano', 'smog', 'sun', 'moon', 'star-half-alt',
-            'search', 'plus', 'minus', 'times', 'check', 'upload'
-        ];
-
-        // Helper for color name to hex and vice versa (for AwesomeMarkers compatibility)
-        const colorNameToHexMap = {
-            'red': '#dc3545', 'blue': '#007bff', 'green': '#28a745', 'orange': '#fd7e14', 'purple': '#6f42c1',
-            'darkblue': '#0056b3', 'darkred': '#bd2130', 'pink': '#e83e8c', 'darkpurple': '#5c359a',
-            'cadetblue': '#5f9ea0', 'lightblue': '#add8e6', 'gray': '#6c757d', 'black': '#343a40'
-        };
-
-        function hexColorFromName(colorName) {
-            return colorNameToHexMap[colorName.toLowerCase()] || colorName; // Return hex if name exists, else return original (might be hex already)
-        }
-
-        function nameColorFromHex(hex) {
-            for (const name in colorNameToHexMap) {
-                if (colorNameToHexMap[name].toLowerCase() === hex.toLowerCase()) {
-                    return name;
-                }
-            }
-            // If no matching name, use the hex value directly. AwesomeMarkers might handle hex colors, but names are safer.
-            // Or you can return a default name if you want to force named colors.
-            return 'blue'; // Fallback to a common named color if hex not found.
-        }
+    #map {
+        width: 100% !important;
+        height: calc(100vh - 240px);
+    }
 }
