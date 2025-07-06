@@ -1,0 +1,115 @@
+<script>
+    // ... (Tu código JavaScript existente) ...
+
+    // --- 7. CAPAS DE DATOS (GeoJSON) ---
+    const overlayLayers = {}; // To store actual L.GeoJSON layers
+    const geojsonFiles = [
+        // Previous GeoJSON layers
+        {
+            name: "Locales de Salud (2012)",
+            url: "http://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_DE_SALUD_DGEEC2012.geojson",
+            style: { color: "#e41a1c", weight: 2, opacity: 0.7, fillColor: "#e41a1c", fillOpacity: 0.4 } // Red
+        },
+        {
+            name: "Locales Policiales (2012)",
+            url: "http://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_POLICIALES_DGEEC2012.geojson",
+            style: { color: "#377eb8", weight: 2, opacity: 0.7, fillColor: "#377eb8", fillOpacity: 0.4 } // Blue
+        },
+        {
+            name: "Locales Educativos (2012)",
+            url: "http://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_EDUCATIVOS_DGEEC2012.geojson",
+            style: { color: "#4daf4a", weight: 2, opacity: 0.7, fillColor: "#4daf4a", fillOpacity: 0.4 } // Green
+        },
+        // --- AQUÍ AGREGAMOS LA NUEVA CAPA DE VÍAS ---
+        {
+            name: "Vías de Paraguay (2022)", // Nombre que aparecerá en el control de capas
+            url: "Vias_Paraguay_INE_2022.geojson", // **Asegúrate de que este archivo esté en tu servidor/carpeta**
+            style: { color: "#ff7f00", weight: 2, opacity: 0.8 }, // Estilo para las vías (naranja)
+            pointToLayer: function (feature, latlng) {
+                // Si el GeoJSON de vías tiene puntos, puedes personalizarlos aquí.
+                // Por ejemplo, un marcador de círculo azul.
+                if (feature.geometry.type === 'Point') {
+                    return L.circleMarker(latlng, {
+                        radius: 5,
+                        fillColor: "#ff7f00",
+                        color: "#000",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                }
+                return null; // No hace nada para otras geometrías si no se especifica
+            },
+            onEachFeature: function (feature, layer) {
+                if (feature.properties) {
+                    let popupContent = "<table>";
+                    for (let prop in feature.properties) {
+                        // Opcional: Filtrar propiedades que no quieras mostrar
+                        if (prop !== "OBJECTID" && prop !== "Shape_Leng" && prop !== "Shape_Area") {
+                            popupContent += `<tr><th>${prop}:</th><td>${feature.properties[prop]}</td></tr>`;
+                        }
+                    }
+                    popupContent += "</table>";
+                    layer.bindPopup(popupContent);
+                }
+            }
+        }
+    ];
+
+    // Función para cargar GeoJSON y añadirlo al mapa
+    function loadGeoJSONLayer(config) {
+        // Verificar si la capa ya existe por su nombre
+        if (overlayLayers[config.name]) {
+            alert(`¡Gracias por tu interés! La capa "${config.name}" ya ha sido cargada en el mapa.`);
+            return;
+        }
+
+        fetch(config.url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(geojson => {
+                let geojsonLayer;
+                if (config.cluster) {
+                    // Si se especifica clustering para la capa
+                    const markers = L.markerClusterGroup();
+                    geojsonLayer = L.geoJSON(geojson, {
+                        style: config.style,
+                        pointToLayer: config.pointToLayer,
+                        onEachFeature: config.onEachFeature
+                    });
+                    markers.addLayer(geojsonLayer);
+                    map.addLayer(markers);
+                    overlayLayers[config.name] = markers; // Store the cluster group
+                } else {
+                    geojsonLayer = L.geoJSON(geojson, {
+                        style: config.style,
+                        pointToLayer: config.pointToLayer,
+                        onEachFeature: config.onEachFeature
+                    }).addTo(map);
+                    overlayLayers[config.name] = geojsonLayer;
+                }
+                
+                // Si el control de capas ya existe, actualízalo
+                if (window.layerControl) {
+                    window.layerControl.addOverlay(overlayLayers[config.name], config.name);
+                } else {
+                    // Si no existe, créalo (esto solo debería pasar una vez)
+                    window.layerControl = L.control.layers(baseLayers, overlayLayers).addTo(map);
+                }
+                console.log(`Capa GeoJSON "${config.name}" cargada.`);
+            })
+            .catch(error => {
+                console.error(`Error al cargar GeoJSON para "${config.name}":`, error);
+                alert(`No se pudo cargar la capa "${config.name}". Verifica la consola para más detalles.`);
+            });
+    }
+
+    // Cargar todas las capas GeoJSON definidas al inicio
+    geojsonFiles.forEach(loadGeoJSONLayer);
+
+    // ... (Tu código JavaScript restante) ...
+</script>
