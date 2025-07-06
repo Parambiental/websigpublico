@@ -1,27 +1,148 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Mapa Leaflet Funcional</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <meta charset="UTF-8" />
+  <title>Visor SIG Avanzado - Leaflet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Plantilla CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" crossorigin="" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton/src/easy-button.css" crossorigin="" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+
   <style>
-    html, body, #map {
-      height: 100%;
-      margin: 0;
-      padding: 0;
+    html, body {
+      height: 100%; margin: 0; padding: 0;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    #map {
+      height: 100vh;
+      width: 100vw;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+    #toolbar {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1001;
+      background: white;
+      padding: 5px 10px;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #toolbar button {
+      background: #0078a8;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #north {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 40px;
+      z-index: 1001;
     }
   </style>
 </head>
 <body>
+  <div id="toolbar">
+    <button onclick="map.setView([-25.2637, -57.5759], 13)"><i class="fa fa-home"></i></button>
+    <button onclick="document.querySelector('.leaflet-control-layers').classList.toggle('leaflet-control-layers-expanded')">
+      <i class="fa fa-layer-group"></i>
+    </button>
+  </div>
+
+  <img id="north" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/North_arrow.svg/200px-North_arrow.svg.png" alt="Norte" />
+
   <div id="map"></div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js" crossorigin=""></script>
+
   <script>
-    const map = L.map('map').setView([-25.2637, -57.5759], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '© OpenStreetMap'
+    });
+
+    const humanitarian = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      maxZoom: 20, attribution: '© OpenStreetMap HOT'
+    });
+
+    const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      maxZoom: 17, attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap'
+    });
+
+    const google = L.tileLayer('http://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
+      maxZoom: 19, attribution: '© Google'
+    });
+
+    const map = L.map('map', {
+      center: [-25.2637, -57.5759],
+      zoom: 13,
+      layers: [osm],
+      zoomControl: false,
+      fullscreenControl: true
+    });
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.control.scale({ position: 'bottomleft' }).addTo(map);
+    L.control.locate({ position: 'topleft', strings: { title: "Mi ubicación" } }).addTo(map);
+    L.control.measure({ position: 'topleft' }).addTo(map);
+    L.Control.geocoder({ position: 'topleft' }).addTo(map);
+
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+    const drawControl = new L.Control.Draw({ edit: { featureGroup: drawnItems } });
+    map.addControl(drawControl);
+    map.on(L.Draw.Event.CREATED, e => drawnItems.addLayer(e.layer));
+
+    const cluster = L.markerClusterGroup();
+    for (let i = 0; i < 50; i++) {
+      cluster.addLayer(L.marker([
+        -25.2637 + (Math.random() - 0.5) * 0.1,
+        -57.5759 + (Math.random() - 0.5) * 0.1
+      ]).bindPopup(`Marker ${i+1}`));
+    }
+    map.addLayer(cluster);
+
+    const baseMaps = {
+      "OSM": osm,
+      "Humanitario": humanitarian,
+      "Topográfico": topo,
+      "Google Maps": google
+    };
+    L.control.layers(baseMaps, {}, { position: 'topright', collapsed: true }).addTo(map);
+
+    map.on('click', e => {
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent(`Coordenadas: ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`)
+        .openOn(map);
+    });
   </script>
 </body>
 </html>
