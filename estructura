@@ -1,0 +1,31 @@
+VisorSIGParticipativo/
+│
+├── index.html                  # Página principal con animación e ingreso al visor
+├── package.json                # Configuración Node (si usás build/servidor local)
+├── vercel.json                 # Configuración para despliegue en Vercel
+├── directorio.md               # Documentación interna del proyecto
+├── README.md                   # Descripción general del proyecto
+│
+├── css/
+│   ├── variables.css           # Variables globales (colores, fuentes, tamaños)
+│   ├── layout.css              # Estilos del layout general (mapa, intro, responsive)
+│   ├── components.css          # Estilos de componentes como tablas, modales, botones
+│
+├── js/
+│   ├── app.js                  # Controlador principal (inicia mapa, eventos)
+│   ├── ui.js                   # Funciones de interfaz (mostrar/ocultar, toolbars)
+│   ├── export.js               # Exportación GeoJSON, SHP, PDF
+│   ├── storage.js              # Guardar/cargar proyectos localmente (.ck)
+│   ├── mapLayers.js            # Configuración de capas base y temáticas
+│   ├── addTo(map).js           # Plugins y controles extra agregados al mapa
+│   ├── geojsonLayersConfig.js # Configuración avanzada de capas GeoJSON
+│   ├── script.js               # Código adicional (comunicación, interacción)
+│   ├── server.js               # Conexión con base de datos o servidor SIG
+│
+├── public/
+│   ├── logos/                  # Logos institucionales si se imprimen
+│   ├── fonts/                  # Tipografías si usás personalizadas
+│   ├── json/                   # Archivos GeoJSON públicos de muestra
+│
+├── DataTables/                # (opcional) Biblioteca si usás tablas con filtros y búsquedas
+├── mover/                     # Otros scripts o backups
