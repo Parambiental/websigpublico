@@ -254,4 +254,264 @@ html, body {
     width: 100% !important;
     height: calc(100vh - 240px);
   }
+<style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #map-container {
+            height: 100%;
+            width: 100%; /* Initially full width */
+            float: left;
+            transition: width 0.3s ease; /* Smooth transition for map width */
+        }
+        #map-container.expanded {
+            width: 100%; /* Map takes full width when sidebar is hidden */
+        }
+        #sidebar {
+            height: 100%;
+            width: 0%; /* Initially hidden */
+            float: right;
+            background-color: #f4f4f4;
+            overflow-y: auto;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            transition: width 0.3s ease; /* Smooth transition for sidebar width */
+        }
+        #sidebar.visible {
+            width: 30%; /* Visible width */
+        }
+        #map-container.sidebar-visible {
+            width: 70%; /* Map width when sidebar is visible */
+        }
+
+        #table-container {
+            padding: 15px;
+        }
+        #feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            table-layout: fixed; /* Fix table layout */
+        }
+        #feature-table th, #feature-table td {
+            border: 1px solid #ddd;
+            padding: 8px 5px; /* Adjust padding for more space */
+            text-align: left;
+            vertical-align: top;
+            word-wrap: break-word; /* Break long words */
+            white-space: normal; /* Allow text to wrap naturally */
+        }
+        #feature-table th {
+            background-color: #0078a8;
+            color: white;
+            font-weight: bold;
+        }
+        #feature-table tr:nth-child(even) { background-color: #f2f2f2; }
+        #feature-table tr:hover { background-color: #ddd; }
+
+        /* Column Widths (Adjust as needed for harmonious layout) */
+        #feature-table th:nth-child(1), #feature-table td:nth-child(1) { width: 5%; } /* ID */
+        #feature-table th:nth-child(2), #feature-table td:nth-child(2) { width: 15%; } /* Tipo */
+        #feature-table th:nth-child(3), #feature-table td:nth-child(3) { width: 8%; text-align: center; } /* Icono */
+        #feature-table th:nth-child(4), #feature-table td:nth-child(4) { width: 25%; } /* Nombre */
+        #feature-table th:nth-child(5), #feature-table td:nth-child(5) { width: 22%; font-size: 0.8em; line-height: 1.2; } /* Coordenadas */
+        #feature-table th:nth-child(6), #feature-table td:nth-child(6) { width: 10%; text-align: center; } /* Color */
+        #feature-table th:nth-child(7), #feature-table td:nth-child(7) { width: 15%; text-align: center; } /* Acción */
+
+
+        .action-button {
+            cursor: pointer;
+            margin: 0 3px; /* Smaller margin */
+            color: #0078a8;
+            font-size: 1.1em; /* Slightly larger icons */
+        }
+        .action-button:hover { color: #005f85; }
+        .color-input {
+            width: 30px; /* Smaller color input */
+            height: 20px;
+            padding: 0;
+            border: 1px solid #ccc; /* Add a border to the color input */
+            cursor: pointer;
+            vertical-align: middle;
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+        }
+        #north-arrow {
+            position: absolute;
+            top: 10px;
+            right: 10px; /* Default to right side when sidebar is hidden */
+            width: 40px;
+            z-index: 1000;
+            transition: right 0.3s ease; /* Smooth transition for arrow position */
+        }
+        #map-container.sidebar-visible + #sidebar + #north-arrow { /* When sidebar is visible, adjust arrow position */
+            right: calc(30% + 10px);
+        }
+
+        /* Estilos para el Modal de Edición */
+        .modal-backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2000;
+            display: none; /* Oculto por defecto */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 20px; border-radius: 8px;
+            width: 350px; max-width: 90%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .modal-content h3 { margin-top: 0; color: #0078a8;}
+        .modal-content label { display: block; margin-top: 10px; font-weight: bold; }
+        .modal-content input[type="text"], .modal-content input[type="color"], .modal-content select {
+            width: calc(100% - 16px); padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px;
+        }
+        .modal-buttons { margin-top: 20px; text-align: right; }
+        .modal-buttons button {
+            padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;
+            font-weight: bold; margin-left: 10px;
+        }
+        .modal-buttons button#cancel-edit { background-color: #ccc; color: #333; }
+        .modal-buttons button#save-edit { background-color: #0078a8; color: white; }
+
+        /* Styles for custom awesome marker icons - to ensure they don't have default bg */
+        .awesome-marker-icon-green, .awesome-marker-icon-blue, .awesome-marker-icon-red, .awesome-marker-icon-purple, .awesome-marker-icon-darkblue, .awesome-marker-icon-orange, .awesome-marker-icon-darkred, .awesome-marker-icon-pink, .awesome-marker-icon-darkpurple, .awesome-marker-icon-cadetblue, .awesome-marker-icon-lightblue, .awesome-marker-icon-gray, .awesome-marker-icon-black {
+            background-color: transparent;
+        }
+
+        /* Responsive adjustments for smaller screens if sidebar is shown */
+        @media (max-width: 768px) {
+            #map-container.sidebar-visible {
+                width: 40%; /* Map takes less width */
+            }
+            #sidebar.visible {
+                width: 60%; /* Sidebar takes more width */
+            }
+            #map-container.sidebar-visible + #sidebar + #north-arrow {
+                right: calc(60% + 10px);
+            }
+            #feature-table th, #feature-table td {
+                padding: 6px 3px; /* Reduce padding further */
+                font-size: 0.8em; /* Smaller font for tighter fit */
+            }
+            #feature-table th:nth-child(1), #feature-table td:nth-child(1) { width: 5%; } /* ID */
+            #feature-table th:nth-child(2), #feature-table td:nth-child(2) { width: 15%; } /* Tipo */
+            #feature-table th:nth-child(3), #feature-table td:nth-child(3) { width: 8%; } /* Icono */
+            #feature-table th:nth-child(4), #feature-table td:nth-child(4) { width: 25%; } /* Nombre */
+            #feature-table th:nth-child(5), #feature-table td:nth-child(5) { width: 22%; } /* Coordenadas */
+            #feature-table th:nth-child(6), #feature-table td:nth-child(6) { width: 10%; } /* Color */
+            #feature-table th:nth-child(7), #feature-table td:nth-child(7) { width: 15%; } /* Acción */
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map-container" class="expanded"></div>
+    <div id="sidebar" class="hidden">
+        <div id="table-container">
+            <h3>Geometrías Dibujadas</h3>
+            <table id="feature-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Icono</th>
+                        <th>Nombre</th>
+                        <th>Coordenadas</th>
+                        <th>Color</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <img id="north-arrow" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/North_arrow.svg/200px-North_arrow.svg.png" alt="Norte" />
+
+    <div id="edit-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3>Editar Geometría</h3>
+            <label for="edit-feature-name">Nombre:</label>
+            <input type="text" id="edit-feature-name">
+            
+            <label for="edit-feature-color">Color:</label>
+            <input type="color" id="edit-feature-color">
+
+            <label for="edit-feature-icon" id="icon-label" style="display: none;">Icono:</label>
+            <select id="edit-feature-icon" style="display: none;">
+                </select>
+            
+            <div class="modal-buttons">
+                <button id="cancel-edit">Cancelar</button>
+                <button id="save-edit">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-measure/dist/leaflet-measure.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
+
+    <script>
+        // --- 0. CONFIGURACIÓN DE ESTILOS POR DEFECTO ---
+        const defaultDrawingStyle = {
+            color: '#0078a8', // Azul principal
+            weight: 3,
+            opacity: 0.8,
+            fillColor: '#0078a8',
+            fillOpacity: 0.2
+        };
+        const defaultMarkerColor = 'orange'; // Color para puntos dibujados (AwesomeMarkers usa nombres de color)
+        const defaultMarkerIcon = 'info'; // Icono por defecto para puntos dibujados (AwesomeMarkers)
+
+        // Flag to track if the sidebar has been shown at least once
+        let sidebarShown = false;
+
+        // Define a list of available icons for the dropdown
+        const availableIcons = [
+            'info', 'home', 'building', 'school', 'hospital', 'car', 'bus', 'train',
+            'bicycle', 'tree', 'map-marker', 'flag', 'camera', 'photo-video', 'cogs',
+            'bell', 'star', 'heart', 'cloud', 'thermometer', 'tint', 'fire', 'bolt',
+            'lightbulb', 'compass', 'globe', 'city', 'university', 'briefcase', 'utensils',
+            'warehouse', 'dollar-sign', 'user', 'users', 'landmark', 'place-of-worship', 'church', 'mosque', 'synagogue',
+            'clinic-medical', 'vial', 'flask', 'seedling', 'tractor', 'farm', 'warehouse',
+            'industry', 'factory', 'gavel', 'balance-scale', 'file-alt', 'book', 'book-open',
+            'store', 'shopping-cart', 'gas-pump', 'road', 'route', 'mountain', 'water',
+            'ship', 'plane', 'meteor', 'volcano', 'smog', 'sun', 'moon', 'star-half-alt',
+            'search', 'plus', 'minus', 'times', 'check', 'upload'
+        ];
+
+        // Helper for color name to hex and vice versa (for AwesomeMarkers compatibility)
+        const colorNameToHexMap = {
+            'red': '#dc3545', 'blue': '#007bff', 'green': '#28a745', 'orange': '#fd7e14', 'purple': '#6f42c1',
+            'darkblue': '#0056b3', 'darkred': '#bd2130', 'pink': '#e83e8c', 'darkpurple': '#5c359a',
+            'cadetblue': '#5f9ea0', 'lightblue': '#add8e6', 'gray': '#6c757d', 'black': '#343a40'
+        };
+
+        function hexColorFromName(colorName) {
+            return colorNameToHexMap[colorName.toLowerCase()] || colorName; // Return hex if name exists, else return original (might be hex already)
+        }
+
+        function nameColorFromHex(hex) {
+            for (const name in colorNameToHexMap) {
+                if (colorNameToHexMap[name].toLowerCase() === hex.toLowerCase()) {
+                    return name;
+                }
+            }
+            // If no matching name, use the hex value directly. AwesomeMarkers might handle hex colors, but names are safer.
+            // Or you can return a default name if you want to force named colors.
+            return 'blue'; // Fallback to a common named color if hex not found.
+        }
 }
