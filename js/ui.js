@@ -1,21 +1,19 @@
-import { map, drawControl, drawControlVisible } from './app.js';
+// ui.js
+// Manejo de la UI: mostrar/ocultar controles, botones, etc.
 
 export function toggleControls() {
-  const panel = document.getElementById("controls");
-  panel.style.display = panel.style.display === "none" ? "flex" : "none";
-}
-
-export function toggleDrawToolbar() {
-  if (drawControlVisible) {
-    map.removeControl(drawControl);
+  const controls = document.getElementById('controls');
+  if (controls.style.display === 'flex' || controls.style.display === '') {
+    controls.style.display = 'none';
   } else {
-    map.addControl(drawControl);
+    controls.style.display = 'flex';
   }
-  drawControlVisible = !drawControlVisible;
 }
 
-export function startApp() {
-  document.getElementById("intro").style.display = "none";
-  document.getElementById("menuBtn").style.display = "block";
-  document.getElementById("toolsBtn").style.display = "block";
+export function setupUI() {
+  // Por ejemplo, ocultar controles al inicio
+  const controls = document.getElementById('controls');
+  if (controls) controls.style.display = 'none';
+
+  // Agregar más funciones UI si necesitás
 }
