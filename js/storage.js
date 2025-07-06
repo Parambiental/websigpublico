@@ -1,30 +1,23 @@
-import { drawnItems } from './app.js';
+// storage.js
+// Funciones para guardar y cargar proyectos (GeoJSON) localmente
 
-export function saveProject() {
-  const geojson = drawnItems.toGeoJSON();
-  const project = { created: new Date().toISOString(), geojson };
-  const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
+export function saveProject(data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `proyecto_${new Date().toISOString().slice(0,10)}.ck`;
+  a.download = `proyecto_${new Date().toISOString().slice(0,10)}.json`;
   a.click();
+  URL.revokeObjectURL(a.href);
 }
 
-export function loadProjectFromFile(inputElement) {
-  const file = inputElement.files[0];
-  if (!file || !file.name.endsWith(".ck")) {
-    alert("Por favor, cargue un archivo con extensión .ck");
-    return;
-  }
+export function loadProject(file, callback) {
   const reader = new FileReader();
-  reader.onload = function () {
+  reader.onload = () => {
     try {
-      const content = JSON.parse(reader.result);
-      drawnItems.clearLayers();
-      L.geoJSON(content.geojson).eachLayer(layer => drawnItems.addLayer(layer));
-    } catch (e) {
-      console.error(e);
-      alert("Error al cargar el archivo .ck");
+      const json = JSON.parse(reader.result);
+      callback(null, json);
+    } catch (error) {
+      callback(error);
     }
   };
   reader.readAsText(file);
