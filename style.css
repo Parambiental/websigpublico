@@ -17,6 +17,24 @@
     --box-shadow-base: 0 2px 12px rgba(0, 0, 0, 0.15);
     --box-shadow-hover: 0 3px 15px rgba(0, 120, 168, 0.4);
 }
+#attribute-table {
+  width: 100% !important;
+  font-size: 0.9em;
+}
+
+#attribute-table thead {
+  background-color: #f4f4f4;
+}
+
+#attribute-table th, #attribute-table td {
+  padding: 8px;
+  text-align: left;
+}
+
+#attribute-table td {
+  border-bottom: 1px solid #ddd;
+}
+
 
 /* Reset básico */
 *,
