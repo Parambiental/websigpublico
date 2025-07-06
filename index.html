@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <title>Visor SIG Avanzado - Leaflet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <!-- Importación de Estilos CSS -->
+
+  <!-- Plantilla CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" crossorigin="anonymous" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" crossorigin="" />
@@ -66,7 +66,6 @@
     <button onclick="document.querySelector('.leaflet-control-layers').classList.toggle('leaflet-control-layers-expanded')">
       <i class="fa fa-layer-group"></i>
     </button>
-    <button id="exportButton">Exportar Datos</button>
   </div>
 
   <img id="north" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/North_arrow.svg/200px-North_arrow.svg.png" alt="Norte" />
@@ -84,6 +83,93 @@
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js" crossorigin=""></script>
   <script src="https://unpkg.com/leaflet-easybutton/src/easy-button.js" crossorigin=""></script>
 
-  <script src="script.js"></script>
+  <script>
+    // --- Definir capas base ---
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '© OpenStreetMap'
+    });
+
+    const stamenToner = L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+      maxZoom: 20, attribution: 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap'
+    });
+
+    const google = L.tileLayer('http://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
+      maxZoom: 19, attribution: '© Google'
+    });
+
+    const humanitarian = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      maxZoom: 20, attribution: '© OpenStreetMap HOT'
+    });
+
+    // --- Inicializar el mapa ---
+    const map = L.map('map', {
+      center: [-25.2637, -57.5759],
+      zoom: 13,
+      layers: [osm],
+      zoomControl: false,
+      fullscreenControl: true
+    });
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.control.scale({ position: 'bottomleft' }).addTo(map);
+    L.control.locate({ position: 'topleft', strings: { title: "Mi ubicación" } }).addTo(map);
+    L.control.measure({ position: 'topleft' }).addTo(map);
+    L.Control.geocoder({ position: 'topleft' }).addTo(map);
+
+    // --- Agregar clúster de marcadores ---
+    const cluster = L.markerClusterGroup();
+    for (let i = 0; i < 50; i++) {
+      cluster.addLayer(L.marker([
+        -25.2637 + (Math.random() - 0.5) * 0.1,
+        -57.5759 + (Math.random() - 0.5) * 0.1
+      ]).bindPopup(`Punto de Interés #${i + 1}`));
+    }
+    map.addLayer(cluster);
+
+    // --- Añadir capas base y overlays ---
+    const baseMaps = {
+      "OSM": osm,
+      "Stamen Toner": stamenToner,
+      "Google Maps": google,
+      "Humanitario": humanitarian
+    };
+
+    L.control.layers(baseMaps, {}, { position: 'topright', collapsed: true }).addTo(map);
+
+    // --- Control para volver al inicio ---
+    L.easyButton('fa-home', function (btn, map) {
+      map.setView([-25.2637, -57.5759], 13);
+    }, 'Volver al inicio').addTo(map);
+
+    // --- Capa de dibujo ---
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    const drawControl = new L.Control.Draw({ edit: { featureGroup: drawnItems } });
+    map.addControl(drawControl);
+
+    map.on(L.Draw.Event.CREATED, (e) => {
+      drawnItems.addLayer(e.layer);
+    });
+
+    // --- Exportar los datos dibujados a GeoJSON ---
+    function exportToGeoJSON() {
+      const geojson = drawnItems.toGeoJSON();
+      const blob = new Blob([JSON.stringify(geojson)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "drawn-data.geojson";
+      a.click();
+    }
+
+    // --- Añadir evento de click en el mapa ---
+    map.on('click', (e) => {
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent(`Coordenadas: ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`)
+        .openOn(map);
+    });
+  </script>
 </body>
 </html>
