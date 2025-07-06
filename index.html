@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
-    <title>Visor SIG Unificado con Atributos y GeoJSON</title>
+    <title>Visor SIG con Tabla de Atributos y Edición</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
@@ -198,37 +198,75 @@
         });
         map.addControl(drawControl);
 
-        // Define a GeoJSON layer to manage and display data
-        const overlayLayers = {};
+        let featureId = 0; // ID para nuevas geometrías
 
-        // Function to load external GeoJSON files
-        function loadGeoJSON(url, layerName, color) {
-            fetch(url).then(response => response.json()).then(data => {
-                const geojsonLayer = L.geoJSON(data, {
-                    style: { color: color, weight: 2, opacity: 0.7 },
-                    onEachFeature: function(feature, layer) {
-                        let popupContent = "";
-                        if (feature.properties) {
-                            for (const key in feature.properties) {
-                                if (feature.properties.hasOwnProperty(key)) {
-                                    popupContent += `<b>${key}:</b> ${feature.properties[key]}<br>`;
-                                }
-                            }
-                        }
-                        layer.bindPopup(popupContent);
-                    },
-                }).addTo(map);
+        function updateTable() {
+            const tbody = document.querySelector('#feature-table tbody');
+            tbody.innerHTML = ''; // Limpiar tabla
 
-                overlayLayers[layerName] = geojsonLayer;
-                L.control.layers(baseLayers, overlayLayers).addTo(map);
-            }).catch(error => {
-                console.warn(`Error al cargar GeoJSON de ${layerName}:`, error);
+            drawnItems.eachLayer(layer => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${featureId++}</td>
+                    <td>${layer instanceof L.Polygon ? 'Polígono' : 'Otro'}</td>
+                    <td><input type="text" value="${layer.feature ? layer.feature.properties.name : ''}" class="feature-name" /></td>
+                    <td>${layer.getLatLngs()}</td>
+                    <td><input type="color" class="feature-color" value="${layer.options.color || '#000000'}" /></td>
+                    <td><button class="action-button edit-btn">Editar</button><button class="action-button delete-btn">Eliminar</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            addTableListeners();
+        }
+
+        function addTableListeners() {
+            // Editar
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const row = e.target.closest('tr');
+                    const colorInput = row.querySelector('.feature-color');
+                    const nameInput = row.querySelector('.feature-name');
+                    const feature = drawnItems.getLayers()[row.rowIndex - 1];
+
+                    // Mostrar modal con los datos de la geometría
+                    document.getElementById('edit-modal').style.display = 'flex';
+                    document.getElementById('edit-feature-name').value = nameInput.value;
+                    document.getElementById('edit-feature-color').value = colorInput.value;
+
+                    // Guardar cambios
+                    document.getElementById('save-edit').onclick = () => {
+                        feature.setStyle({ color: document.getElementById('edit-feature-color').value });
+                        feature.feature.properties.name = document.getElementById('edit-feature-name').value;
+                        updateTable();
+                        document.getElementById('edit-modal').style.display = 'none';
+                    };
+
+                    // Cancelar edición
+                    document.getElementById('cancel-edit').onclick = () => {
+                        document.getElementById('edit-modal').style.display = 'none';
+                    };
+                });
+            });
+
+            // Eliminar
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const row = e.target.closest('tr');
+                    const feature = drawnItems.getLayers()[row.rowIndex - 1];
+                    drawnItems.removeLayer(feature);
+                    updateTable();
+                });
             });
         }
 
-        // Load predefined GeoJSON layers
-        loadGeoJSON('http://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_DE_SALUD_DGEEC2012.geojson', 'Locales de Salud (2012)', '#e41a1c');
-        loadGeoJSON('http://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_POLICIALES_DGEEC2012.geojson', 'Locales Policiales (2012)', '#377eb8');
+        // Agregar geometrías al mapa y actualizar la tabla
+        map.on('draw:created', (e) => {
+            const layer = e.layer;
+            drawnItems.addLayer(layer);
+            updateTable();
+        });
     </script>
+
 </body>
 </html>
