@@ -4,3 +4,24 @@
 <!-- Script de DataTables -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+// Inicializa la tabla de atributos con DataTables
+$(document).ready(function() {
+  $('#attribute-table').DataTable();
+});
+
+// Función para agregar datos a la tabla
+function addToAttributeTable(layer) {
+  const lat = layer.getLatLng ? layer.getLatLng().lat : '-';
+  const lng = layer.getLatLng ? layer.getLatLng().lng : '-';
+  const description = layer.options.description || 'Sin descripción';
+
+  const table = $('#attribute-table').DataTable();
+  table.row.add([layer._leaflet_id, lat, lng, description]).draw();
+}
+
+// Actualiza la tabla cada vez que se agrega un nuevo marcador
+map.on(L.Draw.Event.CREATED, function(e) {
+  const layer = e.layer;
+  drawnItems.addLayer(layer);
+  addToAttributeTable(layer);
+});
