@@ -1,83 +1,102 @@
--<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Visor SIG Participativo</title>
+  <title>🗺️ Visor SIG Participativo</title>
+
+  <!-- Estilos locales -->
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
+
+  <!-- Leaflet y plugins -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+
+  <!-- DataTables -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+
+  <!-- Iconos -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Meta para PWA y temas móviles -->
+  <meta name="theme-color" content="#4caf50" />
 </head>
 <body>
 
-<div id="intro">
-  <h1>🗺️ MAPEANDO TERRITORIOS</h1>
-  <p>Diagnóstico Ambiental Participativo</p>
-  <button onclick="startApp()">Ingresar</button>
-</div>
+  <!-- Pantalla de bienvenida -->
+  <section id="intro" class="intro-screen" aria-label="Pantalla de bienvenida">
+    <h1>🗺️ MAPEANDO TERRITORIOS</h1>
+    <p>Diagnóstico Ambiental Participativo</p>
+    <button id="startBtn">Ingresar</button>
+  </section>
 
-<div id="map-container">
-  <div id="sidebar">
-    <div id="table-container">
-      <table id="feature-table" class="display">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Tipo</th>
-            <th>Color</th>
-            <th>Latitud</th>
-            <th>Longitud</th>
-            <th>Grupo</th>
-            <th>Número</th>
-            <th>Notas</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-  <div id="map"></div>
-</div>
+  <!-- Contenedor principal del visor -->
+  <main id="map-container" style="display:none;">
+    <aside id="sidebar" aria-label="Panel de tabla">
+      <div id="table-container">
+        <table id="feature-table" class="display">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tipo</th>
+              <th>Color</th>
+              <th>Latitud</th>
+              <th>Longitud</th>
+              <th>Grupo</th>
+              <th>Número</th>
+              <th>Notas</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </aside>
+    <section id="map" aria-label="Mapa interactivo" tabindex="0"></section>
+  </main>
 
-<div id="controls">
-  <input type="file" id="loadGeoJSON" accept=".geojson" />
-  <button onclick="exportGeoJSON()">Descargar GeoJSON</button>
-  <button onclick="exportShapefile()">Descargar SHP (.zip)</button>
-  <button onclick="exportPDF()">Exportar a PDF</button>
-  <button onclick="saveProject()">Guardar Proyecto (.ck)</button>
-  <input type="file" id="loadProjectInput" accept=".ck" onchange="loadProjectFromFile(this)" />
-  <button onclick="connectToServer()"><i class="fas fa-database"></i> Conectar a Servidor</button>
-</div>
+  <!-- Panel de herramientas -->
+  <nav id="controls" aria-label="Controles del sistema">
+    <input type="file" id="loadGeoJSON" accept=".geojson" title="Cargar GeoJSON" />
+    <button onclick="exportGeoJSON()">Descargar GeoJSON</button>
+    <button onclick="exportShapefile()">Descargar SHP (.zip)</button>
+    <button onclick="exportPDF()">Exportar a PDF</button>
+    <button onclick="saveProject()">Guardar Proyecto (.ck)</button>
+    <input type="file" id="loadProjectInput" accept=".ck" onchange="loadProjectFromFile(this)" />
+    <button onclick="connectToServer()">
+      <i class="fas fa-database"></i> Conectar a Servidor
+    </button>
+  </nav>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
-<script src="https://unpkg.com/shp-write/bundle.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <!-- Librerías JS externas -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js" defer></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js" defer></script>
+  <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js" defer></script>
+  <script src="https://unpkg.com/shp-write/bundle.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" defer></script>
 
-<script type="module">
-  import { initializeMap } from './js/app.js';
-  import { exportGeoJSON, exportShapefile, exportPDF } from './js/export.js';
-  import { saveProject, loadProjectFromFile } from './js/storage.js';
-  import { connectToServer } from './js/server.js';
+  <!-- App principal -->
+  <script type="module">
+    import { initializeMap } from './js/app.js';
+    import { exportGeoJSON, exportShapefile, exportPDF } from './js/export.js';
+    import { saveProject, loadProjectFromFile } from './js/storage.js';
+    import { connectToServer } from './js/server.js';
 
-  window.startApp = () => {
-    document.getElementById("intro").style.display = "none";
-    initializeMap();
-  }
+    window.exportGeoJSON = exportGeoJSON;
+    window.exportShapefile = exportShapefile;
+    window.exportPDF = exportPDF;
+    window.saveProject = saveProject;
+    window.loadProjectFromFile = loadProjectFromFile;
+    window.connectToServer = connectToServer;
 
-  window.exportGeoJSON = exportGeoJSON;
-  window.exportShapefile = exportShapefile;
-  window.exportPDF = exportPDF;
-  window.saveProject = saveProject;
-  window.loadProjectFromFile = loadProjectFromFile;
-  window.connectToServer = connectToServer;
-</script>
+    document.getElementById("startBtn").addEventListener("click", () => {
+      document.getElementById("intro").style.display = "none";
+      document.getElementById("map-container").style.display = "flex";
+      initializeMap();
+    });
+  </script>
 </body>
 </html>
