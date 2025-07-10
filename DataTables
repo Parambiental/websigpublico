@@ -1,27 +1,87 @@
-<!-- Estilos de DataTables -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 
-<!-- Script de DataTables -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-// Inicializa la tabla de atributos con DataTables
+// Estilos de DataTables - Using the more modern version and adding responsive extension
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+
+// Scripts - Including responsive and buttons extensions
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+
+// Inicialización mejorada de DataTables
 $(document).ready(function() {
-  $('#attribute-table').DataTable();
-});
+    const table = $('#attribute-table').DataTable({
+        responsive: true,
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' // Soporte para español
+        },
+        dom: 'Bfrtip', // Añade botones y mejor control del layout
+        buttons: [
+            'copy', 'excel', 'pdf', 'print' // Botones para exportar
+        ],
+        columns: [
+            { title: 'ID', data: 'id' },
+            { title: 'Latitud', data: 'lat' },
+            { title: 'Longitud', data: 'lng' },
+            { title: 'Descripción', data: 'description' },
+            { 
+                title: 'Acciones',
+                data: null,
+                defaultContent: '<button class="btn-edit">Editar</button> <button class="btn-delete">Eliminar</button>'
+            }
+        ]
+    });
 
-// Función para agregar datos a la tabla
-function addToAttributeTable(layer) {
-  const lat = layer.getLatLng ? layer.getLatLng().lat : '-';
-  const lng = layer.getLatLng ? layer.getLatLng().lng : '-';
-  const description = layer.options.description || 'Sin descripción';
+    // Función mejorada para agregar datos
+    function addToAttributeTable(layer) {
+        const coordinates = layer.getLatLng ? layer.getLatLng() : { lat: '-', lng: '-' };
+        
+        table.row.add({
+            id: layer._leaflet_id,
+            lat: coordinates.lat.toFixed(6), // 6 decimales de precisión
+            lng: coordinates.lng.toFixed(6),
+            description: layer.options.description || 'Sin descripción'
+        }).draw(false);
+    }
 
-  const table = $('#attribute-table').DataTable();
-  table.row.add([layer._leaflet_id, lat, lng, description]).draw();
-}
+    // Manejador de eventos para edición de elementos
+    $('#attribute-table tbody').on('click', '.btn-edit', function() {
+        const data = table.row($(this).parents('tr')).data();
+        // Implementar lógica de edición aquí
+        editFeature(data);
+    });
 
-// Actualiza la tabla cada vez que se agrega un nuevo marcador
-map.on(L.Draw.Event.CREATED, function(e) {
-  const layer = e.layer;
-  drawnItems.addLayer(layer);
-  addToAttributeTable(layer);
+    // Manejador de eventos para eliminación
+    $('#attribute-table tbody').on('click', '.btn-delete', function() {
+        const data = table.row($(this).parents('tr')).data();
+        if (confirm('¿Está seguro de eliminar este elemento?')) {
+            const layer = drawnItems.getLayer(data.id);
+            if (layer) {
+                drawnItems.removeLayer(layer);
+                table.row($(this).parents('tr')).remove().draw();
+            }
+        }
+    });
+
+    // Evento para nuevos marcadores
+    map.on(L.Draw.Event.CREATED, function(e) {
+        const layer = e.layer;
+        drawnItems.addLayer(layer);
+        addToAttributeTable(layer);
+    });
+
+    // Función para editar características
+    function editFeature(data) {
+        const layer = drawnItems.getLayer(data.id);
+        if (layer) {
+            const newDescription = prompt('Ingrese nueva descripción:', data.description);
+            if (newDescription !== null) {
+                layer.options.description = newDescription;
+                // Actualizar la tabla
+                const rowIndex = table.row($(`#attribute-table td:contains('${data.id}')`).closest('tr')).index();
+                table.cell(rowIndex, 3).data(newDescription).draw(false);
+            }
+        }
+    }
 });
