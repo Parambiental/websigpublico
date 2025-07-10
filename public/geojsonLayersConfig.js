@@ -1,40 +1,79 @@
-// public/geojsonLayersConfig.js
-
 /**
  * @typedef {Object} GeoJSONLayerConfig
- * @property {string} name - Nombre de la capa para mostrar en el control.
+ * @property {string} name - Nombre visible de la capa.
  * @property {string} url - URL del archivo GeoJSON.
- * @property {Object} style - Objeto de estilo para la capa Leaflet.
- * @property {function(object, L.LatLng): L.Layer} [pointToLayer] - Función opcional para personalizar la creación de marcadores de puntos.
- * @property {function(object, L.Layer): void} [onEachFeature] - Función opcional para añadir popups u otros eventos a cada feature.
- * @property {boolean} [cluster=false] - Indica si la capa debe usar clustering de marcadores.
+ * @property {Object} style - Estilo general para la capa (color, peso, opacidad, etc.).
+ * @property {function(object, L.LatLng): L.Layer} [pointToLayer] - Personalización de puntos.
+ * @property {function(object, L.Layer): void} [onEachFeature] - Función aplicada a cada entidad (popup, tooltip, etc.).
+ * @property {boolean} [cluster=false] - ¿Usar agrupamiento de puntos?
+ * @property {boolean} [show=true] - ¿Mostrar esta capa al cargar el mapa?
+ * @property {string} [category] - Categoría temática (educación, salud, seguridad, vialidad...).
+ * @property {boolean} [label=false] - ¿Mostrar etiquetas en el mapa?
+ * @property {string} [iconUrl] - URL de ícono personalizado (si aplica).
  */
 
-/**
- * Array de configuraciones para capas GeoJSON.
- * @type {GeoJSONLayerConfig[]}
- */
+/** Función para generar popup dinámico */
+function defaultPopup(feature) {
+  if (!feature.properties) return '';
+  let popup = "<table style='width:100%; border-collapse: collapse;'>";
+  for (let prop in feature.properties) {
+    if (!["OBJECTID", "Shape_Leng", "Shape_Area", "id"].includes(prop)) {
+      popup += `<tr>
+        <th style='text-align:left; padding:4px; border-bottom:1px solid #ddd;'>${prop}</th>
+        <td style='text-align:right; padding:4px; border-bottom:1px solid #ddd;'>${feature.properties[prop]}</td>
+      </tr>`;
+    }
+  }
+  popup += "</table>";
+  return popup;
+}
+
+/** Array de configuraciones de capas GeoJSON */
 const geojsonLayersConfig = [
   {
     name: "Locales de Salud (2012)",
-    url: "http://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_DE_SALUD_DGEEC2012.geojson",
-    style: { color: "#e41a1c", weight: 2, opacity: 0.7, fillColor: "#e41a1c", fillOpacity: 0.4 }, // Rojo
-    // Aquí puedes añadir onEachFeature o pointToLayer si son específicos de esta capa
+    url: "https://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_DE_SALUD_DGEEC2012.geojson",
+    style: { color: "#e41a1c", weight: 2, opacity: 0.7, fillColor: "#e41a1c", fillOpacity: 0.4 },
+    cluster: true,
+    category: "Salud",
+    onEachFeature: (feature, layer) => {
+      layer.bindPopup(defaultPopup(feature));
+      layer.bindTooltip(feature.properties.Nombre || "Salud", { permanent: false });
+    },
   },
   {
     name: "Locales Policiales (2012)",
-    url: "http://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_POLICIALES_DGEEC2012.geojson",
-    style: { color: "#377eb8", weight: 2, opacity: 0.7, fillColor: "#377eb8", fillOpacity: 0.4 }, // Azul
+    url: "https://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_POLICIALES_DGEEC2012.geojson",
+    style: { color: "#377eb8", weight: 2, opacity: 0.7, fillColor: "#377eb8", fillOpacity: 0.4 },
+    cluster: true,
+    category: "Seguridad",
+    onEachFeature: (feature, layer) => {
+      layer.bindPopup(defaultPopup(feature));
+      layer.bindTooltip("Policía", { permanent: false });
+    },
   },
   {
     name: "Locales Educativos (2012)",
-    url: "http://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_EDUCATIVOS_DGEEC2012.geojson",
-    style: { color: "#4daf4a", weight: 2, opacity: 0.7, fillColor: "#4daf4a", fillOpacity: 0.4 }, // Verde
+    url: "https://www.ine.gov.py/microdatos/register/CARTOGRAFIA%20LOCALES%202012/GEOJSON/LOCALES_EDUCATIVOS_DGEEC2012.geojson",
+    style: { color: "#4daf4a", weight: 2, opacity: 0.7, fillColor: "#4daf4a", fillOpacity: 0.4 },
+    cluster: true,
+    category: "Educación",
+    label: true,
+    onEachFeature: (feature, layer) => {
+      layer.bindPopup(defaultPopup(feature));
+      if (feature.properties.Nombre) {
+        layer.bindTooltip(feature.properties.Nombre, { permanent: false });
+      }
+    },
   },
   {
     name: "Vías de Paraguay (2022)",
-    url: "Vias_Paraguay_INE_2022.geojson", // Asegúrate de que este archivo esté en la carpeta 'public' de tu servidor
-    style: { color: "#ff7f00", weight: 2, opacity: 0.8 }, // Naranja
+    url: "Vias_Paraguay_INE_2022.geojson",
+    style: { color: "#ff7f00", weight: 2, opacity: 0.8 },
+    category: "Vialidad",
+    onEachFeature: (feature, layer) => {
+      layer.bindPopup(defaultPopup(feature));
+    },
     pointToLayer: function (feature, latlng) {
       if (feature.geometry.type === 'Point') {
         return L.circleMarker(latlng, {
@@ -46,28 +85,9 @@ const geojsonLayersConfig = [
           fillOpacity: 0.8
         });
       }
-      return undefined; // Retorna undefined si no es un punto, Leaflet lo ignorará
     },
-    onEachFeature: function (feature, layer) {
-      if (feature.properties) {
-        let popupContent = "<table style='width:100%; border-collapse: collapse;'>";
-        for (let prop in feature.properties) {
-          // Filtra propiedades comunes que no suelen ser informativas para el usuario
-          if (!["OBJECTID", "Shape_Leng", "Shape_Area", "id"].includes(prop)) {
-            popupContent += `<tr><th style='text-align: left; padding: 4px; border-bottom: 1px solid #ddd;'>${prop}:</th><td style='text-align: right; padding: 4px; border-bottom: 1px solid #ddd;'>${feature.properties[prop]}</td></tr>`;
-          }
-        }
-        popupContent += "</table>";
-        layer.bindPopup(popupContent);
-      }
-    }
-    // Si quisieras que las vías tengan clustering, añade: cluster: true
   }
 ];
 
-// Exporta la configuración para que pueda ser importada en otro archivo JS
-// Utiliza sintaxis de módulo ES6 si tu entorno lo soporta, o CommonJS si es un backend Node.js.
-// Para el frontend, lo más común es simplemente exponerla globalmente o usar módulos ES6.
-// Para este caso, dado que es un archivo que se carga en el navegador junto con <script type="module">
-// o simplemente es cargado antes que el script principal, podemos exponerlo así:
+// Exponer globalmente para el navegador
 window.geojsonLayersConfig = geojsonLayersConfig;
